@@ -42,6 +42,8 @@ class PersonDicRepository(
 
     fun observeFact(id: UUID): Flow<Fact?> = factDao.observeById(id)
 
+    suspend fun findPersonIdsByFactBody(query: String): List<UUID> = factDao.findPersonIdsMatchingBody(query)
+
     suspend fun addFact(fact: Fact) {
         val withExpiration = fact.copy(
             expiresOn = fact.expiresOn ?: ExpirationCalculator.calculateExpiresOn(fact.volatility, fact.assertedOn),

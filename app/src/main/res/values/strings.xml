@@ -17,7 +17,7 @@
     <string name="person_field_alias">별명</string>
     <string name="person_field_group_tag">그룹</string>
 
-    <string name="person_list_search_hint">이름, 별명, 그룹으로 검색</string>
+    <string name="person_list_search_hint">이름, 별명, 그룹, 사실 내용으로 검색</string>
     <string name="person_list_group_toggle">그룹별로 보기</string>
     <string name="person_list_empty">아직 등록된 사람이 없습니다</string>
     <string name="person_list_add">인물 추가</string>

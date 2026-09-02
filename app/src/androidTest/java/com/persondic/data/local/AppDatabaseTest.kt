@@ -111,4 +111,36 @@ class AppDatabaseTest {
         assertEquals(1, open.size)
         assertEquals("책 빌려주기", open.first().body)
     }
+
+    @Test
+    fun factBodySearchFindsThePerson() = runTest {
+        val allergic = Person(displayName = "정하은")
+        val other = Person(displayName = "오세훈")
+        db.personDao().insert(allergic)
+        db.personDao().insert(other)
+        db.factDao().insert(
+            Fact(
+                personId = allergic.id,
+                category = FactCategory.LIFE,
+                body = "갑각류 알레르기 있음",
+                volatility = Volatility.PERMANENT,
+                assertedOn = LocalDate.of(2026, 1, 1),
+                sensitivity = Sensitivity.NORMAL,
+            ),
+        )
+        db.factDao().insert(
+            Fact(
+                personId = other.id,
+                category = FactCategory.PREFERENCE,
+                body = "커피보다 차를 좋아함",
+                volatility = Volatility.SLOW,
+                assertedOn = LocalDate.of(2026, 1, 1),
+                sensitivity = Sensitivity.NORMAL,
+            ),
+        )
+
+        val matches = db.factDao().findPersonIdsMatchingBody("알레르기")
+
+        assertEquals(listOf(allergic.id), matches)
+    }
 }

@@ -61,13 +61,15 @@ class PersonListViewModel(
         }
     }
 
-    private fun filterPeople(people: List<Person>, query: String): List<Person> {
+    private suspend fun filterPeople(people: List<Person>, query: String): List<Person> {
         val needle = query.trim()
         if (needle.isEmpty()) return people
+        val factMatchIds = repository.findPersonIdsByFactBody(needle).toSet()
         return people.filter { person ->
             person.displayName.contains(needle, ignoreCase = true) ||
                 person.alias?.contains(needle, ignoreCase = true) == true ||
-                person.groupTag?.contains(needle, ignoreCase = true) == true
+                person.groupTag?.contains(needle, ignoreCase = true) == true ||
+                person.id in factMatchIds
         }
     }
 
