@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.persondic.ui.briefing.BriefingScreen
 import com.persondic.ui.factedit.FactEditScreen
+import com.persondic.ui.interactionlog.InteractionLogScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
 import com.persondic.ui.personlist.PersonListScreen
 import java.util.UUID
@@ -61,6 +62,18 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
             BriefingScreen(
                 personId = personId,
                 onBack = { navController.popBackStack() },
+                onRecordInteraction = { navController.navigate(Routes.interactionLog(it)) },
+                onEditFact = { pid, factId -> navController.navigate(Routes.editFact(pid, factId)) },
+            )
+        }
+        composable(
+            route = Routes.INTERACTION_LOG,
+            arguments = listOf(navArgument("personId") { type = NavType.StringType }),
+        ) { backStackEntry ->
+            val personId = UUID.fromString(backStackEntry.arguments?.getString("personId"))
+            InteractionLogScreen(
+                personId = personId,
+                onDone = { navController.popBackStack() },
             )
         }
     }

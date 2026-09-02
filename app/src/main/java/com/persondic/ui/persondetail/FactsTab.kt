@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Fact
 import com.persondic.domain.DerivedValues
+import com.persondic.ui.common.FactCategoryGroup
 import com.persondic.ui.common.categoryLabel
 
 @Composable

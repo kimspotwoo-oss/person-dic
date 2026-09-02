@@ -8,6 +8,7 @@ import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
 import com.persondic.data.model.FactCategory
 import com.persondic.data.repository.PersonDicRepository
+import com.persondic.ui.common.FactCategoryGroup
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
