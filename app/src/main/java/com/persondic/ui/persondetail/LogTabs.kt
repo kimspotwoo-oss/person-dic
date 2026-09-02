@@ -1,5 +1,7 @@
 package com.persondic.ui.persondetail
 
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,6 +23,7 @@ import com.persondic.ui.common.commitmentStatusLabel
 import com.persondic.ui.common.directionLabel
 import com.persondic.ui.common.interactionKindLabel
 import java.time.Instant
+import java.time.LocalDate
 import java.time.ZoneId
 
 @Composable
@@ -55,8 +58,9 @@ fun InteractionsTab(interactions: List<Interaction>) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun CommitmentsTab(commitments: List<Commitment>) {
+fun CommitmentsTab(commitments: List<Commitment>, onLongPress: (Commitment) -> Unit) {
     if (commitments.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.person_detail_commitments_empty))
@@ -68,11 +72,17 @@ fun CommitmentsTab(commitments: List<Commitment>) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .combinedClickable(onClick = {}, onLongClick = { onLongPress(commitment) })
                     .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
                 Text(text = commitment.body, style = MaterialTheme.typography.bodyLarge)
+                val meta = listOfNotNull(
+                    directionLabel(commitment.direction),
+                    commitmentStatusLabel(commitment.status),
+                    commitment.dueOn?.let { formatDueDate(it) },
+                ).joinToString(" · ")
                 Text(
-                    text = "${directionLabel(commitment.direction)} · ${commitmentStatusLabel(commitment.status)}",
+                    text = meta,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
@@ -80,6 +90,9 @@ fun CommitmentsTab(commitments: List<Commitment>) {
         }
     }
 }
+
+private fun formatDueDate(date: LocalDate): String =
+    "%d.%02d.%02d 마감".format(date.year, date.monthValue, date.dayOfMonth)
 
 private fun formatDate(instant: Instant): String {
     val date = instant.atZone(ZoneId.systemDefault()).toLocalDate()

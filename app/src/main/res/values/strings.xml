@@ -56,4 +56,11 @@
     <string name="interaction_field_summary">한 줄 요약</string>
     <string name="interaction_field_new_facts">이번에 알게 된 것</string>
     <string name="interaction_new_fact_hint">새로운 사실 입력</string>
+
+    <string name="commitment_add_title">약속 추가</string>
+    <string name="commitment_field_body">내용</string>
+    <string name="commitment_field_due_on">마감일 설정</string>
+    <string name="commitment_action_reopen">다시 열기</string>
+    <string name="commitment_action_done">완료 처리</string>
+    <string name="commitment_action_dropped">취소 처리</string>
 </resources>

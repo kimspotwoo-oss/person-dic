@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.persondic.R
+import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
 import com.persondic.ui.common.ViewModelFactory
@@ -58,6 +59,8 @@ fun PersonDetailScreen(
 
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var actionMenuFact by remember { mutableStateOf<Fact?>(null) }
+    var showAddCommitmentDialog by rememberSaveable { mutableStateOf(false) }
+    var actionMenuCommitment by remember { mutableStateOf<Commitment?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -72,9 +75,12 @@ fun PersonDetailScreen(
             )
         },
         floatingActionButton = {
-            if (selectedTab == 0) {
-                FloatingActionButton(onClick = { onAddFact(personId) }) {
+            when (selectedTab) {
+                0 -> FloatingActionButton(onClick = { onAddFact(personId) }) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.fact_add))
+                }
+                2 -> FloatingActionButton(onClick = { showAddCommitmentDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.commitment_add_title))
                 }
             }
         },
@@ -116,7 +122,10 @@ fun PersonDetailScreen(
             when (selectedTab) {
                 0 -> FactsTab(groups = factGroups, onLongPress = { actionMenuFact = it })
                 1 -> InteractionsTab(interactions = interactions)
-                else -> CommitmentsTab(commitments = commitments)
+                else -> CommitmentsTab(
+                    commitments = commitments,
+                    onLongPress = { actionMenuCommitment = it },
+                )
             }
         }
     }
@@ -136,6 +145,31 @@ fun PersonDetailScreen(
             onTogglePinned = {
                 actionMenuFact = null
                 viewModel.togglePinned(fact)
+            },
+        )
+    }
+
+    if (showAddCommitmentDialog) {
+        AddCommitmentDialog(
+            onDismiss = { showAddCommitmentDialog = false },
+            onConfirm = { direction, body, dueOn ->
+                viewModel.addCommitment(direction, body, dueOn)
+                showAddCommitmentDialog = false
+            },
+        )
+    }
+
+    actionMenuCommitment?.let { commitment ->
+        CommitmentActionDialog(
+            commitment = commitment,
+            onDismiss = { actionMenuCommitment = null },
+            onSetStatus = { status ->
+                actionMenuCommitment = null
+                viewModel.setCommitmentStatus(commitment, status)
+            },
+            onDelete = {
+                actionMenuCommitment = null
+                viewModel.deleteCommitment(commitment)
             },
         )
     }

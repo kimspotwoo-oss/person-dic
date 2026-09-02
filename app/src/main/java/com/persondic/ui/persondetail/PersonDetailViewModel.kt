@@ -6,6 +6,8 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.model.CommitmentStatus
+import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.ui.common.FactCategoryGroup
@@ -14,6 +16,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.LocalDate
 import java.util.UUID
 
 class PersonDetailViewModel(
@@ -40,6 +43,24 @@ class PersonDetailViewModel(
 
     fun togglePinned(fact: Fact) {
         viewModelScope.launch { repository.updateFact(fact.copy(pinned = !fact.pinned)) }
+    }
+
+    fun addCommitment(direction: Direction, body: String, dueOn: LocalDate?) {
+        val trimmedBody = body.trim()
+        if (trimmedBody.isEmpty()) return
+        viewModelScope.launch {
+            repository.addCommitment(
+                Commitment(personId = personId, direction = direction, body = trimmedBody, dueOn = dueOn),
+            )
+        }
+    }
+
+    fun setCommitmentStatus(commitment: Commitment, status: CommitmentStatus) {
+        viewModelScope.launch { repository.updateCommitment(commitment.copy(status = status)) }
+    }
+
+    fun deleteCommitment(commitment: Commitment) {
+        viewModelScope.launch { repository.deleteCommitment(commitment) }
     }
 
     private fun groupByCategory(facts: List<Fact>): List<FactCategoryGroup> =
