@@ -35,7 +35,10 @@ import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.model.Volatility
 import com.persondic.ui.common.ViewModelFactory
+import com.persondic.ui.common.categoryLabel
 import com.persondic.ui.common.requirePersonDicApplication
+import com.persondic.ui.common.sensitivityLabel
+import com.persondic.ui.common.volatilityLabel
 import java.time.LocalDate
 import java.util.UUID
 
@@ -43,12 +46,13 @@ import java.util.UUID
 @Composable
 fun FactEditScreen(
     personId: UUID,
+    factId: UUID?,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
     val viewModel: FactEditViewModel = viewModel(
-        factory = ViewModelFactory { FactEditViewModel(application.repository, personId) },
+        factory = ViewModelFactory { FactEditViewModel(application.repository, personId, factId) },
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -56,7 +60,13 @@ fun FactEditScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.fact_edit_title)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (viewModel.isEditing) R.string.fact_edit_title_edit else R.string.fact_edit_title_add,
+                        ),
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -155,26 +165,6 @@ private fun SectionLabel(text: String) {
         color = MaterialTheme.colorScheme.primary,
         modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
     )
-}
-
-private fun categoryLabel(category: FactCategory): String = when (category) {
-    FactCategory.CONTEXT -> "관계/계기"
-    FactCategory.PREFERENCE -> "취향"
-    FactCategory.LIFE -> "가족/건강/근황"
-    FactCategory.HOOK -> "다음 화제"
-}
-
-private fun volatilityLabel(volatility: Volatility): String = when (volatility) {
-    Volatility.PERMANENT -> "영구"
-    Volatility.SLOW -> "천천히 변함"
-    Volatility.SEASONAL -> "계절성"
-    Volatility.EVENT -> "일회성"
-}
-
-private fun sensitivityLabel(sensitivity: Sensitivity): String = when (sensitivity) {
-    Sensitivity.NORMAL -> "보통"
-    Sensitivity.PRIVATE -> "비공개"
-    Sensitivity.RESTRICTED -> "제한"
 }
 
 private fun expirationPreviewLabel(expiresOn: LocalDate?): String =

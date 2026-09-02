@@ -40,6 +40,8 @@ class PersonDicRepository(
 
     fun observeFacts(personId: UUID): Flow<List<Fact>> = factDao.observeForPerson(personId)
 
+    fun observeFact(id: UUID): Flow<Fact?> = factDao.observeById(id)
+
     suspend fun addFact(fact: Fact) {
         val withExpiration = fact.copy(
             expiresOn = fact.expiresOn ?: ExpirationCalculator.calculateExpiresOn(fact.volatility, fact.assertedOn),
