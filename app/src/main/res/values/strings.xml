@@ -3,6 +3,8 @@
 
     <string name="action_add">추가</string>
     <string name="action_cancel">취소</string>
+    <string name="action_save">저장</string>
+    <string name="action_back">뒤로가기</string>
 
     <string name="person_field_display_name">이름</string>
     <string name="person_field_alias">별명</string>
@@ -13,4 +15,11 @@
     <string name="person_list_empty">아직 등록된 사람이 없습니다</string>
     <string name="person_list_add">인물 추가</string>
     <string name="person_list_add_title">인물 추가</string>
+
+    <string name="fact_edit_title">사실 추가</string>
+    <string name="fact_field_body">내용</string>
+    <string name="fact_field_category">카테고리</string>
+    <string name="fact_field_volatility">휘발성</string>
+    <string name="fact_field_sensitivity">민감도</string>
+    <string name="fact_field_pinned">브리핑 상단 고정</string>
 </resources>
