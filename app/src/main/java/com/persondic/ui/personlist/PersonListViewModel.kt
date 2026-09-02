@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.persondic.data.local.entity.Person
 import com.persondic.data.repository.PersonDicRepository
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -19,6 +20,7 @@ class PersonListViewModel(
     private val searchQuery = MutableStateFlow("")
     private val isGroupedByTag = MutableStateFlow(true)
 
+    @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<PersonListUiState> = combine(
         repository.observePeople(),
         searchQuery,
