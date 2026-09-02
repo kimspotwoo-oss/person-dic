@@ -51,5 +51,9 @@
     <string name="briefing_record_interaction">만남 기록하기</string>
 
     <string name="interaction_log_title">만남 기록</string>
-    <string name="interaction_log_placeholder">만남 기록 화면 준비 중</string>
+    <string name="interaction_field_datetime">날짜/시간</string>
+    <string name="interaction_field_place">장소</string>
+    <string name="interaction_field_summary">한 줄 요약</string>
+    <string name="interaction_field_new_facts">이번에 알게 된 것</string>
+    <string name="interaction_new_fact_hint">새로운 사실 입력</string>
 </resources>

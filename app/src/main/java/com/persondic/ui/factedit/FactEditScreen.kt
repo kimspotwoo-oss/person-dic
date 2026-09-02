@@ -34,6 +34,7 @@ import com.persondic.R
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.model.Volatility
+import com.persondic.ui.common.SectionLabel
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.categoryLabel
 import com.persondic.ui.common.requirePersonDicApplication
@@ -155,16 +156,6 @@ fun FactEditScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text = text,
-        style = MaterialTheme.typography.labelLarge,
-        color = MaterialTheme.colorScheme.primary,
-        modifier = Modifier.padding(bottom = 8.dp, top = 8.dp),
-    )
 }
 
 private fun expirationPreviewLabel(expiresOn: LocalDate?): String =
