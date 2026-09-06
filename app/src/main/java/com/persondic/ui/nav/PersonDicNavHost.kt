@@ -9,6 +9,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.persondic.ui.briefing.BriefingScreen
 import com.persondic.ui.factedit.FactEditScreen
+import com.persondic.ui.groupmap.GroupMapScreen
 import com.persondic.ui.interactionlog.InteractionLogScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
 import com.persondic.ui.personlist.PersonListScreen
@@ -20,7 +21,11 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
         composable(Routes.PERSON_LIST) {
             PersonListScreen(
                 onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
+                onGroupMapClick = { navController.navigate(Routes.GROUP_MAP) },
             )
+        }
+        composable(Routes.GROUP_MAP) {
+            GroupMapScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.PERSON_DETAIL,

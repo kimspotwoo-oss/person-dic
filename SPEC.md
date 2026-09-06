@@ -71,10 +71,10 @@ AI 코딩 도구(Claude Code, Cursor 등)에 그대로 넣고 작업하기 위�
 id: UUID (PK)
 displayName: String            // 표시 이름
 alias: String?                 // 별명, 회사 직함 등 구분용
-groupTag: String?              // 대학동창, 회사, 가족 등 자유 문자열
+groupTag: String?              // (레거시) Phase 0.5부터 4.8 PersonGroupTag로 대체됨. 필드는 유지하되 신규 쓰기 없음
 metOn: LocalDate?              // 알게 된 시점
 metStory: String?              // 어떻게 알게 되었는지
-photoUri: String?              // Phase 0에서는 null 허용, UI는 이니셜 아바타
+photoUri: String?              // Phase 0.5부터 실제 사용. 앱 내부 저장소에 복사한 사진의 절대 경로. null이면 이니셜 아바타
 createdAt / updatedAt: Instant
 ```
 
@@ -158,13 +158,26 @@ label: String                  // "배우자", "직장 동료", "소개해준 �
 - `isStale(fact)` — `expiresOn != null && expiresOn < today`
 - `staleFactCount(person)` — 브리핑에서 재확인 유도용
 
+### 4.8 PersonGroupTag (Person ↔ 그룹 다대다) — Phase 0.5 추가
+
+한 사람이 여러 그룹에 속할 수 있어야 해서(해시태그처럼) 추가됨. 4.1의 `groupTag` 단일 문자열을 대체한다.
+
+```
+personId: UUID (FK → Person, CASCADE)
+tag: String                    // "대학동창", "회사", "가족" 등 자유 문자열
+PRIMARY KEY (personId, tag)
+```
+
+DB 버전 1 → 2 마이그레이션에서 기존 `person.groupTag` 값을 이 테이블로 이관한다.
+`Person.groupTag` 필드 자체는 제거하지 않는다.
+
 ---
 
 ## 5. 화면
 
 ### S1. 인물 목록 (홈)
 
-- 상단 검색 바 (이름, 별명, groupTag, fact body 대상)
+- 상단 검색 바 (이름, 별명, 그룹 태그, fact body 대상)
 - groupTag별 섹션 또는 전체 목록 토글
 - 각 행: 이니셜 아바타, 이름, groupTag, "마지막 만남 N일 전"
 - 우하단 FAB → 인물 추가
@@ -207,6 +220,19 @@ label: String                  // "배우자", "직장 동료", "소개해준 �
 - 휘발성 선택 (칩 4개) — 선택 시 만료일 프리뷰를 즉시 표시 ("2027년 3월까지 유효")
 - 민감도 선택 (칩 3개, 기본 NORMAL)
 - 고정 토글
+
+### S6. 그룹 맵 — Phase 0.5 추가
+
+S1 상단에서 진입. 그룹을 집합으로 보고 겹침을 시각화한다.
+
+- **버블 맵**: 그룹마다 원 하나. 반지름은 인원수(√ 비례), 배치는 스프링 레이아웃 —
+  공유 멤버가 많은 그룹(Jaccard 계수 기준)일수록 서로 가깝게 놓인다. 결정적 배치(난수 없음).
+- 원을 탭해서 2~3개 선택하면 아래에 **정확한 벤 다이어그램**이 나온다.
+  각 영역에 인원수를 표시하고, 그 아래에 영역별 이름 목록을 나열한다.
+  (4개 이상은 벤 다이어그램으로 정확히 그릴 수 없어 2~3개로 제한. 4번째를 고르면 가장 오래된 선택이 빠진다.)
+
+이 화면은 설계원칙 1번(관계를 점수화하지 않는다)을 넘지 않는다 — 친밀도·랭킹·추천이 아니라
+소속 집합의 겹침만 보여준다.
 
 ---
 

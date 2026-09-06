@@ -37,6 +37,25 @@ class PersonDetailViewModel(
     val commitments: StateFlow<List<Commitment>> = repository.observeCommitments(personId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val tags: StateFlow<List<String>> = repository.observeGroupTags(personId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val allTags: StateFlow<List<String>> = repository.observeAllGroupTags()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    fun addTag(tag: String) {
+        viewModelScope.launch { repository.addGroupTag(personId, tag) }
+    }
+
+    fun removeTag(tag: String) {
+        viewModelScope.launch { repository.removeGroupTag(personId, tag) }
+    }
+
+    fun setPhoto(photoUri: String?) {
+        val current = person.value ?: return
+        viewModelScope.launch { repository.setPersonPhoto(current, photoUri) }
+    }
+
     fun deleteFact(fact: Fact) {
         viewModelScope.launch { repository.deleteFact(fact) }
     }

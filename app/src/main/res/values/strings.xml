@@ -15,7 +15,21 @@
 
     <string name="person_field_display_name">이름</string>
     <string name="person_field_alias">별명</string>
-    <string name="person_field_group_tag">그룹</string>
+
+    <string name="photo_add">사진 추가</string>
+    <string name="photo_change">사진 변경</string>
+    <string name="photo_remove">사진 삭제</string>
+
+    <string name="group_tags_label">그룹 (해시태그)</string>
+    <string name="group_tag_add_hint">새 그룹 입력</string>
+    <string name="group_tag_suggestions">기존 그룹에서 선택</string>
+    <string name="group_tag_remove">그룹 제거</string>
+
+    <string name="group_map_open">그룹 맵</string>
+    <string name="group_map_title">그룹 맵</string>
+    <string name="group_map_empty">아직 그룹이 없습니다. 인물에 그룹을 붙이면 여기에 나타납니다.</string>
+    <string name="group_map_hint">원이 클수록 인원이 많고, 겹치는 사람이 많은 그룹끼리 가까이 놓입니다. 원을 2~3개 탭하면 아래에 벤 다이어그램이 나옵니다.</string>
+    <string name="group_map_clear">선택 해제</string>
 
     <string name="person_list_search_hint">이름, 별명, 그룹, 사실 내용으로 검색</string>
     <string name="person_list_group_toggle">그룹별로 보기</string>

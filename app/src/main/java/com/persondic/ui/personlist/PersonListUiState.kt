@@ -4,6 +4,7 @@ import com.persondic.data.local.entity.Person
 
 data class PersonListItem(
     val person: Person,
+    val tags: List<String>,
     val daysSinceLastInteraction: Long?,
 )
 
@@ -16,6 +17,7 @@ data class PersonListUiState(
     val isGroupedByTag: Boolean = true,
     val searchQuery: String = "",
     val groups: List<PersonGroup> = emptyList(),
+    val allTags: List<String> = emptyList(),
 ) {
     val isEmpty: Boolean get() = groups.all { it.people.isEmpty() }
 }

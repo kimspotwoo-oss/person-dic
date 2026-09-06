@@ -34,7 +34,10 @@ import com.persondic.R
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
+import com.persondic.ui.common.GroupTagEditor
+import com.persondic.ui.common.PhotoPickerRow
 import com.persondic.ui.common.ViewModelFactory
+import com.persondic.ui.common.deleteStoredPhoto
 import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
 
@@ -56,6 +59,8 @@ fun PersonDetailScreen(
     val factGroups by viewModel.factGroups.collectAsStateWithLifecycle()
     val interactions by viewModel.interactions.collectAsStateWithLifecycle()
     val commitments by viewModel.commitments.collectAsStateWithLifecycle()
+    val tags by viewModel.tags.collectAsStateWithLifecycle()
+    val allTags by viewModel.allTags.collectAsStateWithLifecycle()
 
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var actionMenuFact by remember { mutableStateOf<Fact?>(null) }
@@ -90,7 +95,23 @@ fun PersonDetailScreen(
                 .padding(innerPadding)
                 .fillMaxSize(),
         ) {
-            person?.let { PersonHeader(it) }
+            person?.let { loaded ->
+                PersonHeader(
+                    person = loaded,
+                    tags = tags,
+                    allTags = allTags,
+                    onPhotoPicked = { picked ->
+                        deleteStoredPhoto(loaded.photoUri)
+                        viewModel.setPhoto(picked)
+                    },
+                    onPhotoCleared = {
+                        deleteStoredPhoto(loaded.photoUri)
+                        viewModel.setPhoto(null)
+                    },
+                    onAddTag = viewModel::addTag,
+                    onRemoveTag = viewModel::removeTag,
+                )
+            }
 
             Button(
                 onClick = { onBriefingClick(personId) },
@@ -176,13 +197,30 @@ fun PersonDetailScreen(
 }
 
 @Composable
-private fun PersonHeader(person: Person) {
+private fun PersonHeader(
+    person: Person,
+    tags: List<String>,
+    allTags: List<String>,
+    onPhotoPicked: (String) -> Unit,
+    onPhotoCleared: () -> Unit,
+    onAddTag: (String) -> Unit,
+    onRemoveTag: (String) -> Unit,
+) {
     Column(modifier = Modifier.padding(16.dp)) {
-        Text(text = person.displayName, style = MaterialTheme.typography.headlineSmall)
-        val subtitle = listOfNotNull(person.alias, person.groupTag).joinToString(" · ")
-        if (subtitle.isNotEmpty()) {
+        PhotoPickerRow(
+            name = person.displayName,
+            photoUri = person.photoUri,
+            onPhotoPicked = onPhotoPicked,
+            onPhotoCleared = onPhotoCleared,
+        )
+        Text(
+            text = person.displayName,
+            style = MaterialTheme.typography.headlineSmall,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+        person.alias?.takeIf { it.isNotBlank() }?.let {
             Text(
-                text = subtitle,
+                text = it,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
             )
@@ -194,5 +232,11 @@ private fun PersonHeader(person: Person) {
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+        GroupTagEditor(
+            selectedTags = tags,
+            allTags = allTags,
+            onAddTag = onAddTag,
+            onRemoveTag = onRemoveTag,
+        )
     }
 }

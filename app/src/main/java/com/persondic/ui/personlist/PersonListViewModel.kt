@@ -3,6 +3,7 @@ package com.persondic.ui.personlist
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.repository.PersonDicRepository
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -12,6 +13,14 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.util.UUID
+
+private data class ListInputs(
+    val people: List<Person>,
+    val assignments: List<PersonGroupTag>,
+    val query: String,
+    val groupByTag: Boolean,
+)
 
 class PersonListViewModel(
     private val repository: PersonDicRepository,
@@ -23,20 +32,27 @@ class PersonListViewModel(
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<PersonListUiState> = combine(
         repository.observePeople(),
+        repository.observeAllGroupTagAssignments(),
         searchQuery,
         isGroupedByTag,
-    ) { people, query, grouped -> Triple(people, query, grouped) }
-        .mapLatest { (people, query, grouped) ->
-            val items = filterPeople(people, query).map { person ->
+    ) { people, assignments, query, grouped -> ListInputs(people, assignments, query, grouped) }
+        .mapLatest { inputs ->
+            val tagsByPerson: Map<UUID, List<String>> = inputs.assignments
+                .groupBy { it.personId }
+                .mapValues { (_, rows) -> rows.map { it.tag }.sorted() }
+
+            val items = filterPeople(inputs.people, tagsByPerson, inputs.query).map { person ->
                 PersonListItem(
                     person = person,
+                    tags = tagsByPerson[person.id].orEmpty(),
                     daysSinceLastInteraction = repository.daysSinceLastInteraction(person.id),
                 )
             }
             PersonListUiState(
-                isGroupedByTag = grouped,
-                searchQuery = query,
-                groups = buildGroups(items, grouped),
+                isGroupedByTag = inputs.groupByTag,
+                searchQuery = inputs.query,
+                groups = buildGroups(items, inputs.groupByTag),
+                allTags = inputs.assignments.map { it.tag }.distinct().sorted(),
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PersonListUiState())
@@ -49,38 +65,51 @@ class PersonListViewModel(
         isGroupedByTag.value = !isGroupedByTag.value
     }
 
-    fun addPerson(displayName: String, alias: String?, groupTag: String?) {
+    fun addPerson(displayName: String, alias: String?, tags: List<String>, photoUri: String?) {
         val name = displayName.trim()
         if (name.isEmpty()) return
         viewModelScope.launch {
-            repository.addPerson(
-                Person(
-                    displayName = name,
-                    alias = alias?.trim()?.takeIf { it.isNotEmpty() },
-                    groupTag = groupTag?.trim()?.takeIf { it.isNotEmpty() },
-                ),
+            val person = Person(
+                displayName = name,
+                alias = alias?.trim()?.takeIf { it.isNotEmpty() },
+                photoUri = photoUri,
             )
+            repository.addPerson(person)
+            tags.forEach { tag -> repository.addGroupTag(person.id, tag) }
         }
     }
 
-    private suspend fun filterPeople(people: List<Person>, query: String): List<Person> {
+    private suspend fun filterPeople(
+        people: List<Person>,
+        tagsByPerson: Map<UUID, List<String>>,
+        query: String,
+    ): List<Person> {
         val needle = query.trim()
         if (needle.isEmpty()) return people
         val factMatchIds = repository.findPersonIdsByFactBody(needle).toSet()
         return people.filter { person ->
             person.displayName.contains(needle, ignoreCase = true) ||
                 person.alias?.contains(needle, ignoreCase = true) == true ||
-                person.groupTag?.contains(needle, ignoreCase = true) == true ||
+                tagsByPerson[person.id].orEmpty().any { it.contains(needle, ignoreCase = true) } ||
                 person.id in factMatchIds
         }
     }
 
-    private fun buildGroups(people: List<PersonListItem>, groupByTag: Boolean): List<PersonGroup> {
-        if (!groupByTag) return listOf(PersonGroup(label = null, people = people))
-        return people
-            .groupBy { it.person.groupTag ?: UNTAGGED_LABEL }
-            .toSortedMap()
-            .map { (tag, members) -> PersonGroup(label = tag, people = members) }
+    private fun buildGroups(items: List<PersonListItem>, groupByTag: Boolean): List<PersonGroup> {
+        if (!groupByTag) return listOf(PersonGroup(label = null, people = items))
+
+        val byTag = sortedMapOf<String, MutableList<PersonListItem>>()
+        val untagged = mutableListOf<PersonListItem>()
+        items.forEach { item ->
+            if (item.tags.isEmpty()) {
+                untagged += item
+            } else {
+                item.tags.forEach { tag -> byTag.getOrPut(tag) { mutableListOf() } += item }
+            }
+        }
+
+        val tagged = byTag.map { (tag, members) -> PersonGroup(label = tag, people = members) }
+        return if (untagged.isEmpty()) tagged else tagged + PersonGroup(UNTAGGED_LABEL, untagged)
     }
 
     private companion object {

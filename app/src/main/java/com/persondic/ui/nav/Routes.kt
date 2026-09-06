@@ -8,6 +8,7 @@ object Routes {
     const val FACT_EDIT = "factEdit/{personId}?factId={factId}"
     const val BRIEFING = "briefing/{personId}"
     const val INTERACTION_LOG = "interactionLog/{personId}"
+    const val GROUP_MAP = "groupMap"
 
     fun personDetail(personId: UUID): String = "personDetail/$personId"
 
