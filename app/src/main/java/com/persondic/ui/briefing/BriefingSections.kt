@@ -32,7 +32,7 @@ internal fun SectionHeader(title: String) {
     Text(
         text = title,
         style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(horizontal = 16.dp, top = 16.dp, bottom = 8.dp),
+        modifier = Modifier.padding(start = 16.dp, top = 16.dp, end = 16.dp, bottom = 8.dp),
     )
 }
 
@@ -64,7 +64,7 @@ internal fun OpenCommitmentsSection(groups: List<CommitmentDirectionGroup>) {
                 text = directionLabel(group.direction),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.primary,
-                modifier = Modifier.padding(horizontal = 16.dp, top = 4.dp, bottom = 4.dp),
+                modifier = Modifier.padding(start = 16.dp, top = 4.dp, end = 16.dp, bottom = 4.dp),
             )
             group.commitments.forEach { commitment ->
                 Text(
