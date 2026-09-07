@@ -12,7 +12,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.mapLatest
 import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
 import java.util.UUID
 
 private data class ListInputs(
@@ -52,7 +51,6 @@ class PersonListViewModel(
                 isGroupedByTag = inputs.groupByTag,
                 searchQuery = inputs.query,
                 groups = buildGroups(items, inputs.groupByTag),
-                allTags = inputs.assignments.map { it.tag }.distinct().sorted(),
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PersonListUiState())
@@ -63,20 +61,6 @@ class PersonListViewModel(
 
     fun onToggleGroupByTag() {
         isGroupedByTag.value = !isGroupedByTag.value
-    }
-
-    fun addPerson(displayName: String, alias: String?, tags: List<String>, photoUri: String?) {
-        val name = displayName.trim()
-        if (name.isEmpty()) return
-        viewModelScope.launch {
-            val person = Person(
-                displayName = name,
-                alias = alias?.trim()?.takeIf { it.isNotEmpty() },
-                photoUri = photoUri,
-            )
-            repository.addPerson(person)
-            tags.forEach { tag -> repository.addGroupTag(person.id, tag) }
-        }
     }
 
     private suspend fun filterPeople(

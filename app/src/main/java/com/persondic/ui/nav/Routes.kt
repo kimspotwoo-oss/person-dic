@@ -4,6 +4,7 @@ import java.util.UUID
 
 object Routes {
     const val PERSON_LIST = "personList"
+    const val PERSON_ADD = "personAdd"
     const val PERSON_DETAIL = "personDetail/{personId}"
     const val FACT_EDIT = "factEdit/{personId}?factId={factId}"
     const val BRIEFING = "briefing/{personId}"

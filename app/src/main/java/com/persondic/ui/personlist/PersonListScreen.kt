@@ -53,6 +53,7 @@ fun PersonListScreen(
     onGroupMapClick: () -> Unit,
     onQuickAddClick: () -> Unit,
     onBackupClick: () -> Unit,
+    onAddPersonClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
@@ -60,7 +61,6 @@ fun PersonListScreen(
         factory = ViewModelFactory { PersonListViewModel(application.repository) },
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
-    var showAddDialog by rememberSaveable { mutableStateOf(false) }
     var showMenu by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
@@ -99,7 +99,7 @@ fun PersonListScreen(
             )
         },
         floatingActionButton = {
-            FloatingActionButton(onClick = { showAddDialog = true }) {
+            FloatingActionButton(onClick = onAddPersonClick) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.person_list_add))
             }
         },
@@ -159,17 +159,6 @@ fun PersonListScreen(
                 }
             }
         }
-    }
-
-    if (showAddDialog) {
-        AddPersonDialog(
-            allTags = uiState.allTags,
-            onDismiss = { showAddDialog = false },
-            onConfirm = { displayName, alias, tags, photoUri ->
-                viewModel.addPerson(displayName, alias, tags, photoUri)
-                showAddDialog = false
-            },
-        )
     }
 }
 

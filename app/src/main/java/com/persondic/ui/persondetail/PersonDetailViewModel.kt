@@ -64,6 +64,15 @@ class PersonDetailViewModel(
         viewModelScope.launch { repository.setPersonPhoto(current, photoUri) }
     }
 
+    fun updateProfile(displayName: String, alias: String?, metStory: String?) {
+        val current = person.value ?: return
+        val name = displayName.trim()
+        if (name.isEmpty()) return
+        viewModelScope.launch {
+            repository.updatePerson(current.copy(displayName = name, alias = alias, metStory = metStory))
+        }
+    }
+
     fun setBirthday(monthDay: LocalDate?, birthYear: Int?, isLunar: Boolean) {
         val current = person.value ?: return
         viewModelScope.launch { repository.setBirthday(current, monthDay, birthYear, isLunar) }

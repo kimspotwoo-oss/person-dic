@@ -13,6 +13,7 @@ import com.persondic.ui.factedit.FactEditScreen
 import com.persondic.ui.groupmap.GroupMapScreen
 import com.persondic.ui.interactionlog.InteractionLogScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
+import com.persondic.ui.personadd.PersonAddScreen
 import com.persondic.ui.personlist.PersonListScreen
 import com.persondic.ui.quickadd.QuickAddScreen
 import java.util.UUID
@@ -26,6 +27,18 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
                 onGroupMapClick = { navController.navigate(Routes.GROUP_MAP) },
                 onQuickAddClick = { navController.navigate(Routes.QUICK_ADD) },
                 onBackupClick = { navController.navigate(Routes.BACKUP) },
+                onAddPersonClick = { navController.navigate(Routes.PERSON_ADD) },
+            )
+        }
+        composable(Routes.PERSON_ADD) {
+            PersonAddScreen(
+                onDone = { navController.popBackStack() },
+                onSaved = { personId ->
+                    // Straight into the new person, and the add screen is not left on the back
+                    // stack for the back button to land on.
+                    navController.popBackStack()
+                    navController.navigate(Routes.personDetail(personId))
+                },
             )
         }
         composable(Routes.GROUP_MAP) {

@@ -76,6 +76,7 @@ fun PersonDetailScreen(
     var showAddCommitmentDialog by rememberSaveable { mutableStateOf(false) }
     var actionMenuCommitment by remember { mutableStateOf<Commitment?>(null) }
     var showFixedInfoDialog by rememberSaveable { mutableStateOf(false) }
+    var showProfileDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -112,6 +113,7 @@ fun PersonDetailScreen(
                     allTags = allTags,
                     attributes = attributes,
                     onEditFixedInfo = { showFixedInfoDialog = true },
+                    onEditProfile = { showProfileDialog = true },
                     onPhotoPicked = { picked ->
                         deleteStoredPhoto(loaded.photoUri)
                         viewModel.setPhoto(picked)
@@ -163,6 +165,19 @@ fun PersonDetailScreen(
                     onLongPress = { actionMenuCommitment = it },
                 )
             }
+        }
+    }
+
+    if (showProfileDialog) {
+        person?.let { loaded ->
+            ProfileEditDialog(
+                person = loaded,
+                onDismiss = { showProfileDialog = false },
+                onConfirm = { displayName, alias, metStory ->
+                    viewModel.updateProfile(displayName, alias, metStory)
+                    showProfileDialog = false
+                },
+            )
         }
     }
 
@@ -234,6 +249,7 @@ private fun PersonHeader(
     allTags: List<String>,
     attributes: List<PersonAttribute>,
     onEditFixedInfo: () -> Unit,
+    onEditProfile: () -> Unit,
     onPhotoPicked: (String) -> Unit,
     onPhotoCleared: () -> Unit,
     onAddTag: (String) -> Unit,
@@ -246,11 +262,21 @@ private fun PersonHeader(
             onPhotoPicked = onPhotoPicked,
             onPhotoCleared = onPhotoCleared,
         )
-        Text(
-            text = person.displayName,
-            style = MaterialTheme.typography.headlineSmall,
-            modifier = Modifier.padding(top = 8.dp),
-        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = person.displayName,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onEditProfile) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.person_edit_profile))
+            }
+        }
         person.alias?.takeIf { it.isNotBlank() }?.let {
             Text(
                 text = it,
