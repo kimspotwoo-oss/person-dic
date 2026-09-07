@@ -29,6 +29,9 @@ interface CommitmentDao {
     @Query("SELECT * FROM commitment WHERE personId = :personId AND status = :status ORDER BY createdAt DESC")
     fun observeForPersonByStatus(personId: UUID, status: CommitmentStatus): Flow<List<Commitment>>
 
+    @Query("SELECT * FROM commitment WHERE status = :status ORDER BY dueOn ASC")
+    fun observeAllByStatus(status: CommitmentStatus): Flow<List<Commitment>>
+
     @Query("SELECT * FROM commitment")
     suspend fun getAll(): List<Commitment>
 

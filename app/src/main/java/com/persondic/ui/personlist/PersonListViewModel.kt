@@ -2,9 +2,11 @@ package com.persondic.ui.personlist
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.repository.PersonDicRepository
+import com.persondic.domain.buildReminders
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -17,8 +19,15 @@ import java.util.UUID
 private data class ListInputs(
     val people: List<Person>,
     val assignments: List<PersonGroupTag>,
+    val openCommitments: List<Commitment>,
     val query: String,
-    val groupByTag: Boolean,
+    val options: ViewOptions,
+)
+
+/** Grouping and ordering travel together so the combine stays inside its typed overloads. */
+private data class ViewOptions(
+    val groupByTag: Boolean = true,
+    val sort: PersonSort = PersonSort.NAME,
 )
 
 class PersonListViewModel(
@@ -26,15 +35,18 @@ class PersonListViewModel(
 ) : ViewModel() {
 
     private val searchQuery = MutableStateFlow("")
-    private val isGroupedByTag = MutableStateFlow(true)
+    private val viewOptions = MutableStateFlow(ViewOptions())
 
     @OptIn(ExperimentalCoroutinesApi::class)
     val uiState: StateFlow<PersonListUiState> = combine(
         repository.observePeople(),
         repository.observeAllGroupTagAssignments(),
+        repository.observeAllOpenCommitments(),
         searchQuery,
-        isGroupedByTag,
-    ) { people, assignments, query, grouped -> ListInputs(people, assignments, query, grouped) }
+        viewOptions,
+    ) { people, assignments, commitments, query, options ->
+        ListInputs(people, assignments, commitments, query, options)
+    }
         .mapLatest { inputs ->
             val tagsByPerson: Map<UUID, List<String>> = inputs.assignments
                 .groupBy { it.personId }
@@ -48,9 +60,11 @@ class PersonListViewModel(
                 )
             }
             PersonListUiState(
-                isGroupedByTag = inputs.groupByTag,
+                isGroupedByTag = inputs.options.groupByTag,
+                sort = inputs.options.sort,
                 searchQuery = inputs.query,
-                groups = buildGroups(items, inputs.groupByTag),
+                groups = buildGroups(sortItems(items, inputs.options.sort), inputs.options.groupByTag),
+                reminders = buildReminders(inputs.people, inputs.openCommitments),
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PersonListUiState())
@@ -60,7 +74,13 @@ class PersonListViewModel(
     }
 
     fun onToggleGroupByTag() {
-        isGroupedByTag.value = !isGroupedByTag.value
+        viewOptions.value = viewOptions.value.let { it.copy(groupByTag = !it.groupByTag) }
+    }
+
+    fun onToggleSort() {
+        viewOptions.value = viewOptions.value.let {
+            it.copy(sort = if (it.sort == PersonSort.NAME) PersonSort.LEAST_RECENT else PersonSort.NAME)
+        }
     }
 
     private suspend fun filterPeople(
@@ -77,6 +97,18 @@ class PersonListViewModel(
                 tagsByPerson[person.id].orEmpty().any { it.contains(needle, ignoreCase = true) } ||
                 person.id in factMatchIds
         }
+    }
+
+    /**
+     * Someone with no logged meeting sorts last rather than first. Never having recorded a meeting
+     * usually means the person was only just added, not that they have been out of touch longest.
+     */
+    private fun sortItems(items: List<PersonListItem>, sort: PersonSort): List<PersonListItem> = when (sort) {
+        PersonSort.NAME -> items
+        PersonSort.LEAST_RECENT -> items.sortedWith(
+            compareByDescending<PersonListItem> { it.daysSinceLastInteraction ?: Long.MIN_VALUE }
+                .thenBy { it.person.displayName },
+        )
     }
 
     private fun buildGroups(items: List<PersonListItem>, groupByTag: Boolean): List<PersonGroup> {

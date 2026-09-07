@@ -178,6 +178,10 @@ class PersonDicRepository(
     fun observeOpenCommitments(personId: UUID): Flow<List<Commitment>> =
         commitmentDao.observeForPersonByStatus(personId, CommitmentStatus.OPEN)
 
+    /** Every open commitment, whoever it belongs to. Feeds the list screen's dated reminders. */
+    fun observeAllOpenCommitments(): Flow<List<Commitment>> =
+        commitmentDao.observeAllByStatus(CommitmentStatus.OPEN)
+
     suspend fun addCommitment(commitment: Commitment) = commitmentDao.insert(commitment)
 
     suspend fun updateCommitment(commitment: Commitment) = commitmentDao.update(commitment)

@@ -62,6 +62,13 @@
 
     <string name="person_list_search_hint">이름, 별명, 그룹, 사실 내용으로 검색</string>
     <string name="person_list_group_toggle">그룹별로 보기</string>
+    <string name="person_list_sort_name">이름순</string>
+    <string name="person_list_sort_least_recent">오래된 순</string>
+    <string name="person_list_reminders_title">챙길 것</string>
+    <string name="person_list_reminder_overdue">%1$d일 지남</string>
+    <string name="person_list_reminder_today">오늘</string>
+    <string name="person_list_reminder_in_days">%1$d일 뒤</string>
+    <string name="person_list_reminder_birthday">%1$s 생일</string>
     <string name="person_list_empty">아직 등록된 사람이 없습니다</string>
     <string name="person_list_add">인물 추가</string>
     <string name="person_list_add_title">인물 추가</string>
