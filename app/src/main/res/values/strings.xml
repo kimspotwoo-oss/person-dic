@@ -87,6 +87,13 @@
     <string name="person_detail_tab_facts">사실</string>
     <string name="person_detail_tab_interactions">만남 기록</string>
     <string name="person_detail_tab_commitments">약속</string>
+    <string name="person_detail_tab_ties">관계</string>
+    <string name="person_detail_ties_empty">아직 연결된 사람이 없습니다</string>
+    <string name="tie_add_title">관계 추가</string>
+    <string name="tie_hint">라벨은 고르는 사람을 설명합니다. "소개해준 사람"이면 그 사람이 소개해준 것입니다. 상대 화면에는 반대로 표시됩니다.</string>
+    <string name="tie_label">관계 (예: 배우자)</string>
+    <string name="tie_pick_person">상대 찾기</string>
+    <string name="tie_narrow_search">%1$d명 더 있습니다. 이름을 입력해 좁혀보세요.</string>
     <string name="person_detail_facts_empty">아직 등록된 사실이 없습니다</string>
     <string name="person_detail_interactions_empty">아직 만남 기록이 없습니다</string>
     <string name="person_detail_commitments_empty">아직 약속이 없습니다</string>

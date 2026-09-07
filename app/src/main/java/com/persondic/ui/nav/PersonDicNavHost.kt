@@ -62,6 +62,7 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
                 onAddFact = { navController.navigate(Routes.addFact(it)) },
                 onEditFact = { pid, factId -> navController.navigate(Routes.editFact(pid, factId)) },
                 onOpenInteraction = { pid, id -> navController.navigate(Routes.interactionDetail(pid, id)) },
+                onOpenPerson = { other -> navController.navigate(Routes.personDetail(other)) },
             )
         }
         composable(

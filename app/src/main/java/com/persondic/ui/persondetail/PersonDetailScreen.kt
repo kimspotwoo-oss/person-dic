@@ -41,6 +41,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
+import com.persondic.domain.TieView
 import com.persondic.ui.common.FixedInfoBlock
 import com.persondic.ui.common.SUGGESTED_ATTRIBUTE_LABELS
 import com.persondic.ui.common.GroupTagEditor
@@ -59,6 +60,7 @@ fun PersonDetailScreen(
     onAddFact: (UUID) -> Unit,
     onEditFact: (UUID, UUID) -> Unit,
     onOpenInteraction: (UUID, UUID) -> Unit,
+    onOpenPerson: (UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
@@ -73,6 +75,9 @@ fun PersonDetailScreen(
     val allTags by viewModel.allTags.collectAsStateWithLifecycle()
     val attributes by viewModel.attributes.collectAsStateWithLifecycle()
     val allAttributeLabels by viewModel.allAttributeLabels.collectAsStateWithLifecycle()
+    val ties by viewModel.ties.collectAsStateWithLifecycle()
+    val otherPeople by viewModel.otherPeople.collectAsStateWithLifecycle()
+    val allTieLabels by viewModel.allTieLabels.collectAsStateWithLifecycle()
 
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var actionMenuFact by remember { mutableStateOf<Fact?>(null) }
@@ -80,6 +85,8 @@ fun PersonDetailScreen(
     var actionMenuCommitment by remember { mutableStateOf<Commitment?>(null) }
     var showFixedInfoDialog by rememberSaveable { mutableStateOf(false) }
     var showProfileDialog by rememberSaveable { mutableStateOf(false) }
+    var showAddTieDialog by rememberSaveable { mutableStateOf(false) }
+    var actionMenuTie by remember { mutableStateOf<TieView?>(null) }
 
     Scaffold(
         modifier = modifier,
@@ -100,6 +107,9 @@ fun PersonDetailScreen(
                 }
                 2 -> FloatingActionButton(onClick = { showAddCommitmentDialog = true }) {
                     Icon(Icons.Default.Add, contentDescription = stringResource(R.string.commitment_add_title))
+                }
+                3 -> FloatingActionButton(onClick = { showAddTieDialog = true }) {
+                    Icon(Icons.Default.Add, contentDescription = stringResource(R.string.tie_add_title))
                 }
             }
         },
@@ -164,6 +174,11 @@ fun PersonDetailScreen(
                         onClick = { selectedTab = 2 },
                         text = { Text(stringResource(R.string.person_detail_tab_commitments)) },
                     )
+                    Tab(
+                        selected = selectedTab == 3,
+                        onClick = { selectedTab = 3 },
+                        text = { Text(stringResource(R.string.person_detail_tab_ties)) },
+                    )
                 }
             }
 
@@ -173,12 +188,40 @@ fun PersonDetailScreen(
                     interactions = interactions,
                     onOpen = { onOpenInteraction(personId, it.id) },
                 )
-                else -> commitmentItems(
+                2 -> commitmentItems(
                     commitments = commitments,
                     onLongPress = { actionMenuCommitment = it },
                 )
+                else -> tieItems(
+                    ties = ties,
+                    onOpen = onOpenPerson,
+                    onLongPress = { actionMenuTie = it },
+                )
             }
         }
+    }
+
+    if (showAddTieDialog) {
+        AddTieDialog(
+            candidates = otherPeople,
+            suggestedLabels = (allTieLabels + defaultTieLabels).distinct(),
+            onDismiss = { showAddTieDialog = false },
+            onConfirm = { otherPersonId, label ->
+                viewModel.addTie(otherPersonId, label)
+                showAddTieDialog = false
+            },
+        )
+    }
+
+    actionMenuTie?.let { tie ->
+        RemoveTieDialog(
+            tie = tie,
+            onDismiss = { actionMenuTie = null },
+            onConfirm = {
+                actionMenuTie = null
+                viewModel.removeTie(tie.tieId)
+            },
+        )
     }
 
     if (showProfileDialog) {

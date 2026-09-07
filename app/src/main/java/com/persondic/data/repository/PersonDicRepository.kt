@@ -19,6 +19,7 @@ import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
+import com.persondic.data.local.entity.Tie
 import com.persondic.data.model.CommitmentStatus
 import com.persondic.data.model.Sensitivity
 import com.persondic.domain.DerivedValues
@@ -54,6 +55,20 @@ class PersonDicRepository(
     suspend fun setPersonPhoto(person: Person, photoUri: String?) {
         personDao.update(person.copy(photoUri = photoUri, updatedAt = Instant.now()))
     }
+
+    // Ties between people
+
+    fun observeTies(personId: UUID): Flow<List<Tie>> = tieDao.observeForPerson(personId)
+
+    fun observeAllTieLabels(): Flow<List<String>> = tieDao.observeAllLabels()
+
+    suspend fun addTie(fromPersonId: UUID, toPersonId: UUID, label: String) {
+        val trimmed = label.trim()
+        if (trimmed.isEmpty() || fromPersonId == toPersonId) return
+        tieDao.insert(Tie(fromPersonId = fromPersonId, toPersonId = toPersonId, label = trimmed))
+    }
+
+    suspend fun removeTie(id: UUID) = tieDao.delete(id)
 
     // Fixed information
 
