@@ -5,8 +5,11 @@ import kotlinx.serialization.Serializable
 /**
  * Bumped whenever the on-disk shape changes in a way older builds cannot read. Import refuses
  * anything newer than it understands rather than quietly dropping the parts it cannot map.
+ *
+ * 2 — 몇년생 moved out of the birthday into its own field, and fixed-information entries carry a
+ * sensitivity. Format 1 files still read correctly: see BackupPerson.
  */
-const val BACKUP_FORMAT_VERSION = 1
+const val BACKUP_FORMAT_VERSION = 2
 
 const val BACKUP_JSON_NAME = "backup.json"
 const val BACKUP_PHOTO_DIR = "photos"
@@ -40,9 +43,12 @@ data class BackupPerson(
     val metStory: String? = null,
     /** File name inside the archive's photos/ folder, not a device path. */
     val photo: String? = null,
+    /** Month and day only in format 2 and later; format 1 wrote the real year in here. */
     val birthday: String? = null,
-    val birthdayHasYear: Boolean = true,
+    val birthYear: Int? = null,
     val birthdayIsLunar: Boolean = false,
+    /** Format 1 only. Kept so a backup written by an older build still reads correctly. */
+    val birthdayHasYear: Boolean = true,
     val createdAt: String? = null,
     val updatedAt: String? = null,
 )
@@ -111,5 +117,6 @@ data class BackupAttribute(
     val personId: String,
     val label: String,
     val value: String,
+    val sensitivity: String = "NORMAL",
     val sortOrder: Int = 0,
 )

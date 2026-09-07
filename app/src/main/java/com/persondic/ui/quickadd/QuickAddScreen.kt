@@ -171,30 +171,21 @@ private fun PersonPreview(person: ParsedPerson) {
                 )
             }
             person.birthday?.let { birthday ->
-                val text = when {
-                    birthday.isLunar && birthday.hasYear ->
-                        stringResource(
-                            R.string.birthday_lunar_with_year,
-                            birthday.date.year,
-                            birthday.date.monthValue,
-                            birthday.date.dayOfMonth,
-                        )
-                    birthday.isLunar ->
-                        stringResource(R.string.birthday_lunar, birthday.date.monthValue, birthday.date.dayOfMonth)
-                    birthday.hasYear ->
-                        stringResource(
-                            R.string.birthday_with_year,
-                            birthday.date.year,
-                            birthday.date.monthValue,
-                            birthday.date.dayOfMonth,
-                        )
-                    else ->
-                        stringResource(R.string.birthday_no_year, birthday.date.monthValue, birthday.date.dayOfMonth)
+                val year = birthday.year?.let { stringResource(R.string.birth_year_value, it) }
+                val date = birthday.monthDay?.let { monthDay ->
+                    if (birthday.isLunar) {
+                        stringResource(R.string.birthday_lunar, monthDay.monthValue, monthDay.dayOfMonth)
+                    } else {
+                        stringResource(R.string.birthday_no_year, monthDay.monthValue, monthDay.dayOfMonth)
+                    }
                 }
-                Text(
-                    text = "${stringResource(R.string.birthday_label)}: $text",
-                    style = MaterialTheme.typography.bodySmall,
-                )
+                val text = listOfNotNull(year, date).joinToString(" ")
+                if (text.isNotEmpty()) {
+                    Text(
+                        text = "${stringResource(R.string.birthday_label)}: $text",
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
             }
             person.attributes.forEach { attribute ->
                 Text(

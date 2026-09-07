@@ -10,6 +10,7 @@ import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.model.CommitmentStatus
 import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
+import com.persondic.data.model.Sensitivity
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.ui.common.FactCategoryGroup
 import kotlinx.coroutines.flow.SharingStarted
@@ -63,14 +64,20 @@ class PersonDetailViewModel(
         viewModelScope.launch { repository.setPersonPhoto(current, photoUri) }
     }
 
-    fun setBirthday(birthday: LocalDate?, hasYear: Boolean, isLunar: Boolean) {
+    fun setBirthday(monthDay: LocalDate?, birthYear: Int?, isLunar: Boolean) {
         val current = person.value ?: return
-        viewModelScope.launch { repository.setBirthday(current, birthday, hasYear, isLunar) }
+        viewModelScope.launch { repository.setBirthday(current, monthDay, birthYear, isLunar) }
     }
 
-    fun setAttribute(label: String, value: String) {
+    fun setAttribute(label: String, value: String, sensitivity: Sensitivity) {
         viewModelScope.launch {
-            repository.setAttribute(personId, label, value, sortOrder = attributes.value.size)
+            repository.setAttribute(
+                personId = personId,
+                label = label,
+                value = value,
+                sensitivity = sensitivity,
+                sortOrder = attributes.value.size,
+            )
         }
     }
 

@@ -22,14 +22,18 @@ object BirthdayCalculator {
     }
 
     /**
-     * Age on the next birthday's date, or null when the birth year is unknown or the date is
-     * lunar. Reported in the international count, not 한국식 세는 나이.
+     * Age on the next birthday's date, or null when either half is missing.
+     *
+     * Needs both the year and the date: 만 나이 turns over on the birthday, so with only the year
+     * the answer is off by one for part of the year. 연 나이 is not guessed in its place — showing
+     * "1994년생" and no age is clearer than showing an age that means something different from
+     * what the reader assumes.
      */
     fun ageOnNextBirthday(person: Person, today: LocalDate = LocalDate.now()): Int? {
         val birthday = person.birthday ?: return null
-        if (!person.birthdayHasYear || person.birthdayIsLunar) return null
-        val next = nextOccurrence(MonthDay.from(birthday), today)
-        return next.year - birthday.year
+        val year = person.birthYear ?: return null
+        if (person.birthdayIsLunar) return null
+        return nextOccurrence(MonthDay.from(birthday), today).year - year
     }
 
     /**

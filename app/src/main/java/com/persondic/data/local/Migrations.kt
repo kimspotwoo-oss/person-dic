@@ -2,6 +2,7 @@ package com.persondic.data.local
 
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 
 val MIGRATION_1_2 = object : Migration(1, 2) {
     override fun migrate(db: SupportSQLiteDatabase) {
@@ -57,5 +58,36 @@ val MIGRATION_2_3 = object : Migration(2, 3) {
 val MIGRATION_3_4 = object : Migration(3, 4) {
     override fun migrate(db: SupportSQLiteDatabase) {
         db.execSQL("ALTER TABLE `interaction` ADD COLUMN `notes` TEXT DEFAULT NULL")
+    }
+}
+
+/**
+ * Splits 몇년생 out of the birthday, and gives each fixed-information entry its own sensitivity.
+ *
+ * The year moves from inside `birthday` into its own column and `birthday` is rewritten to the
+ * stand-in year, so there is exactly one place the year can be read from. `birthdayHasYear` is
+ * left behind deliberately: see Person.birthdayHasYear for why it cannot be dropped.
+ */
+val MIGRATION_4_5 = object : Migration(4, 5) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `person` ADD COLUMN `birthYear` INTEGER DEFAULT NULL")
+
+        // Dates are stored as epoch days, so *86400 turns them into the epoch seconds
+        // strftime understands.
+        db.execSQL(
+            "UPDATE `person` SET `birthYear` = " +
+                "CAST(strftime('%Y', `birthday` * 86400, 'unixepoch') AS INTEGER) " +
+                "WHERE `birthdayHasYear` = 1 AND `birthday` IS NOT NULL",
+        )
+        db.execSQL(
+            "UPDATE `person` SET `birthday` = CAST(" +
+                "julianday('$BIRTHDAY_YEAR_UNKNOWN-' || strftime('%m-%d', `birthday` * 86400, 'unixepoch')) " +
+                "- julianday('1970-01-01') AS INTEGER) " +
+                "WHERE `birthday` IS NOT NULL",
+        )
+
+        db.execSQL(
+            "ALTER TABLE `person_attribute` ADD COLUMN `sensitivity` TEXT NOT NULL DEFAULT 'NORMAL'",
+        )
     }
 }

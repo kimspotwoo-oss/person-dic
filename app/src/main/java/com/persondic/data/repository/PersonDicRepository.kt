@@ -12,6 +12,7 @@ import com.persondic.data.local.dao.PersonAttributeDao
 import com.persondic.data.local.dao.PersonDao
 import com.persondic.data.local.dao.TieDao
 import com.persondic.data.local.entity.Attendance
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
@@ -19,6 +20,7 @@ import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.model.CommitmentStatus
+import com.persondic.data.model.Sensitivity
 import com.persondic.domain.DerivedValues
 import com.persondic.domain.ExpirationCalculator
 import kotlinx.coroutines.flow.Flow
@@ -60,7 +62,13 @@ class PersonDicRepository(
 
     fun observeAllAttributeLabels(): Flow<List<String>> = personAttributeDao.observeAllLabels()
 
-    suspend fun setAttribute(personId: UUID, label: String, value: String, sortOrder: Int = 0) {
+    suspend fun setAttribute(
+        personId: UUID,
+        label: String,
+        value: String,
+        sensitivity: Sensitivity = Sensitivity.NORMAL,
+        sortOrder: Int = 0,
+    ) {
         val trimmedLabel = label.trim()
         val trimmedValue = value.trim()
         if (trimmedLabel.isEmpty() || trimmedValue.isEmpty()) return
@@ -69,6 +77,7 @@ class PersonDicRepository(
                 personId = personId,
                 label = trimmedLabel,
                 value = trimmedValue,
+                sensitivity = sensitivity,
                 sortOrder = sortOrder,
             ),
         )
@@ -76,12 +85,19 @@ class PersonDicRepository(
 
     suspend fun removeAttribute(personId: UUID, label: String) = personAttributeDao.delete(personId, label)
 
-    suspend fun setBirthday(person: Person, birthday: LocalDate?, hasYear: Boolean, isLunar: Boolean) {
+    /**
+     * [monthDay]'s year is discarded: the year belongs to [birthYear] alone, so nothing can end up
+     * with two answers for it. `birthdayHasYear` is written here and nowhere else — it is a legacy
+     * column that only mirrors whether a year is known.
+     */
+    suspend fun setBirthday(person: Person, monthDay: LocalDate?, birthYear: Int?, isLunar: Boolean) {
+        val year = birthYear?.takeIf { it in EARLIEST_BIRTH_YEAR..LocalDate.now().year }
         personDao.update(
             person.copy(
-                birthday = birthday,
-                birthdayHasYear = hasYear,
+                birthday = monthDay?.withYear(BIRTHDAY_YEAR_UNKNOWN),
+                birthYear = year,
                 birthdayIsLunar = isLunar,
+                birthdayHasYear = year != null,
                 updatedAt = Instant.now(),
             ),
         )
@@ -211,3 +227,6 @@ class PersonDicRepository(
         plan.dropped
     }
 }
+
+/** Below this a typed year is a slip, not a birth year. */
+private const val EARLIEST_BIRTH_YEAR = 1900

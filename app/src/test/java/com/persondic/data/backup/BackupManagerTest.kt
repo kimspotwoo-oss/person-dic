@@ -61,8 +61,9 @@ class BackupManagerTest {
                 metStory = "동아리에서 처음 만남",
                 photoUri = photoPath,
                 birthday = LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 2, 29),
-                birthdayHasYear = false,
+                birthYear = 1988,
                 birthdayIsLunar = true,
+                birthdayHasYear = true,
                 createdAt = Instant.parse("2026-01-01T01:02:03Z"),
                 updatedAt = Instant.parse("2026-02-02T04:05:06Z"),
             ),
@@ -114,7 +115,13 @@ class BackupManagerTest {
         ),
         attributes = listOf(
             PersonAttribute(personId = personId, label = "혈액형", value = "A", sortOrder = 1),
-            PersonAttribute(personId = personId, label = "MBTI", value = "INFP", sortOrder = 2),
+            PersonAttribute(
+                personId = personId,
+                label = "종교",
+                value = "천주교",
+                sensitivity = Sensitivity.PRIVATE,
+                sortOrder = 2,
+            ),
         ),
         ties = listOf(
             Tie(
@@ -284,6 +291,34 @@ class BackupManagerTest {
         assertEquals(Volatility.SEASONAL, fact.volatility)
         assertEquals(Sensitivity.NORMAL, fact.sensitivity)
         assertEquals(0, result.skippedRows)
+    }
+
+    @Test
+    fun aFormatOneFileStillReadsWithTheYearInsideTheBirthday() {
+        val bytes = zipOf(
+            BACKUP_JSON_NAME to """
+            {
+              "formatVersion": 1,
+              "people": [
+                {"id": "$personId", "displayName": "김민준",
+                 "birthday": "1990-03-15", "birthdayHasYear": true},
+                {"id": "$otherId", "displayName": "이서연",
+                 "birthday": "2000-07-04", "birthdayHasYear": false}
+              ]
+            }
+            """.trimIndent(),
+        )
+
+        val result = manager.import(ByteArrayInputStream(bytes)) as ImportResult.Success
+
+        val known = result.snapshot.people.first { it.id == personId }
+        assertEquals(1990, known.birthYear)
+        assertEquals(LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 3, 15), known.birthday)
+
+        // birthdayHasYear was false, so 2000 was the stand-in year, not a real one.
+        val unknownYear = result.snapshot.people.first { it.id == otherId }
+        assertNull(unknownYear.birthYear)
+        assertEquals(LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 7, 4), unknownYear.birthday)
     }
 
     @Test

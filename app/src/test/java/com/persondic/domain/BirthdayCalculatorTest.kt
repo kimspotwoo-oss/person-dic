@@ -11,13 +11,13 @@ import java.time.MonthDay
 class BirthdayCalculatorTest {
 
     private fun person(
-        birthday: LocalDate?,
-        hasYear: Boolean = true,
+        monthDay: LocalDate?,
+        birthYear: Int? = 1990,
         isLunar: Boolean = false,
     ) = Person(
         displayName = "김민준",
-        birthday = birthday,
-        birthdayHasYear = hasYear,
+        birthday = monthDay?.withYear(BIRTHDAY_YEAR_UNKNOWN),
+        birthYear = birthYear,
         birthdayIsLunar = isLunar,
     )
 
@@ -46,11 +46,17 @@ class BirthdayCalculatorTest {
 
     @Test
     fun aBirthdayWithoutAYearStillCountsDown() {
-        val stored = LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 9, 21)
-
-        val days = BirthdayCalculator.daysUntilBirthday(person(stored, hasYear = false), today)
+        val days = BirthdayCalculator.daysUntilBirthday(
+            person(LocalDate.parse("1990-09-21"), birthYear = null),
+            today,
+        )
 
         assertEquals(14L, days)
+    }
+
+    @Test
+    fun aKnownYearWithNoDateGivesNoCountdown() {
+        assertNull(BirthdayCalculator.daysUntilBirthday(person(null, birthYear = 1994), today))
     }
 
     @Test
@@ -65,7 +71,7 @@ class BirthdayCalculatorTest {
 
     @Test
     fun noBirthdayMeansNoCountdown() {
-        assertNull(BirthdayCalculator.daysUntilBirthday(person(null), today))
+        assertNull(BirthdayCalculator.daysUntilBirthday(person(null, birthYear = null), today))
     }
 
     @Test
@@ -84,7 +90,7 @@ class BirthdayCalculatorTest {
 
     @Test
     fun aLeapDayBirthdayNeverThrows() {
-        val days = BirthdayCalculator.daysUntilBirthday(person(LocalDate.parse("2000-02-29")), today)
+        val days = BirthdayCalculator.daysUntilBirthday(person(LocalDate.parse("2000-02-29"), birthYear = 2000), today)
 
         assertEquals(174L, days)
     }
@@ -105,9 +111,14 @@ class BirthdayCalculatorTest {
 
     @Test
     fun noAgeWhenTheYearIsUnknown() {
-        val stored = LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 9, 21)
+        assertNull(
+            BirthdayCalculator.ageOnNextBirthday(person(LocalDate.parse("1990-09-21"), birthYear = null), today),
+        )
+    }
 
-        assertNull(BirthdayCalculator.ageOnNextBirthday(person(stored, hasYear = false), today))
+    @Test
+    fun noAgeFromTheYearAlone() {
+        assertNull(BirthdayCalculator.ageOnNextBirthday(person(null, birthYear = 1990), today))
     }
 
     @Test

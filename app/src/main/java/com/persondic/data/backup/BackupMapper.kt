@@ -1,6 +1,7 @@
 package com.persondic.data.backup
 
 import com.persondic.data.local.entity.Attendance
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
@@ -37,8 +38,9 @@ fun Person.toBackup(photoName: String?): BackupPerson = BackupPerson(
     metStory = metStory,
     photo = photoName,
     birthday = birthday?.toString(),
-    birthdayHasYear = birthdayHasYear,
+    birthYear = birthYear,
     birthdayIsLunar = birthdayIsLunar,
+    birthdayHasYear = birthYear != null,
     createdAt = createdAt.toString(),
     updatedAt = updatedAt.toString(),
 )
@@ -93,6 +95,7 @@ fun PersonAttribute.toBackup(): BackupAttribute = BackupAttribute(
     personId = personId.toString(),
     label = label,
     value = value,
+    sensitivity = sensitivity.name,
     sortOrder = sortOrder,
 )
 
@@ -116,9 +119,10 @@ fun BackupPerson.toEntity(photoPath: String?): Person? {
         metOn = metOn.toLocalDateOrNull(),
         metStory = metStory,
         photoUri = photoPath,
-        birthday = birthday.toLocalDateOrNull(),
-        birthdayHasYear = birthdayHasYear,
+        birthday = storedBirthMonthDay(),
+        birthYear = storedBirthYear(),
         birthdayIsLunar = birthdayIsLunar,
+        birthdayHasYear = storedBirthYear() != null,
         createdAt = createdAt.toInstantOrNow(),
         updatedAt = updatedAt.toInstantOrNow(),
     )
@@ -190,6 +194,7 @@ fun BackupAttribute.toEntity(): PersonAttribute? {
         personId = owner,
         label = trimmedLabel,
         value = value,
+        sensitivity = sensitivity.toEnumOrDefault(Sensitivity.NORMAL),
         sortOrder = sortOrder,
     )
 }
@@ -200,6 +205,17 @@ fun BackupTie.toEntity(): Tie? {
     val to = toPersonId.toUuidOrNull() ?: return null
     return Tie(id = tieId, fromPersonId = from, toPersonId = to, label = label)
 }
+
+/**
+ * The year a format-1 file hid inside the birthday. Newer files carry it in its own field, and
+ * older ones only counted it as real when birthdayHasYear was set.
+ */
+private fun BackupPerson.storedBirthYear(): Int? =
+    birthYear ?: birthday.toLocalDateOrNull()?.year?.takeIf { birthdayHasYear }
+
+/** Only the month and day survive: the year has its own field now. */
+private fun BackupPerson.storedBirthMonthDay(): LocalDate? =
+    birthday.toLocalDateOrNull()?.withYear(BIRTHDAY_YEAR_UNKNOWN)
 
 // Lenient primitive decoding
 

@@ -17,11 +17,14 @@ data class ParsedFact(
     val pinned: Boolean,
 )
 
-/** A birthday as written in the text. [hasYear] is false when only a month and day were given. */
+/**
+ * A birthday as written in the text. Either half can be missing: "생일: 3-15" gives only a
+ * [monthDay], "년생: 1994" gives only a [year].
+ */
 data class ParsedBirthday(
-    val date: LocalDate,
-    val hasYear: Boolean,
-    val isLunar: Boolean,
+    val monthDay: LocalDate? = null,
+    val year: Int? = null,
+    val isLunar: Boolean = false,
 )
 
 data class ParsedAttribute(
@@ -140,7 +143,22 @@ private fun parseBlock(block: String, warnings: MutableList<String>): ParsedPers
                 if (parsed == null) {
                     warnings += "생일 날짜를 읽지 못했습니다: \"$text\" (1990-03-15 또는 3-15 형식)"
                 } else {
-                    birthday = parsed
+                    // A 년생: line may already have set the year; keep whichever half each gave.
+                    birthday = ParsedBirthday(
+                        monthDay = parsed.monthDay,
+                        year = parsed.year ?: birthday?.year,
+                        isLunar = parsed.isLunar,
+                    )
+                }
+            }
+
+            line.startsWith("년생:") -> {
+                val text = line.removePrefix("년생:").trim().removeSuffix("년생").removeSuffix("년").trim()
+                val year = text.toIntOrNull()?.takeIf { it in EARLIEST_BIRTH_YEAR..LATEST_BIRTH_YEAR }
+                if (year == null) {
+                    warnings += "몇년생인지 읽지 못했습니다: \"$text\" (1994 형식)"
+                } else {
+                    birthday = (birthday ?: ParsedBirthday()).copy(year = year)
                 }
             }
 
@@ -236,14 +254,14 @@ private fun parseBirthday(text: String): ParsedBirthday? {
 
     return try {
         when (parts.size) {
+            // A full date still only stores the month and day; the year goes to its own field.
             3 -> ParsedBirthday(
-                date = LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt()),
-                hasYear = true,
+                monthDay = MonthDay.of(parts[1].toInt(), parts[2].toInt()).atYear(BIRTHDAY_YEAR_UNKNOWN),
+                year = parts[0].toInt().takeIf { it in EARLIEST_BIRTH_YEAR..LATEST_BIRTH_YEAR },
                 isLunar = isLunar,
             )
             2 -> ParsedBirthday(
-                date = MonthDay.of(parts[0].toInt(), parts[1].toInt()).atYear(BIRTHDAY_YEAR_UNKNOWN),
-                hasYear = false,
+                monthDay = MonthDay.of(parts[0].toInt(), parts[1].toInt()).atYear(BIRTHDAY_YEAR_UNKNOWN),
                 isLunar = isLunar,
             )
             else -> null
@@ -254,3 +272,6 @@ private fun parseBirthday(text: String): ParsedBirthday? {
         null
     }
 }
+
+private const val EARLIEST_BIRTH_YEAR = 1900
+private const val LATEST_BIRTH_YEAR = 2200

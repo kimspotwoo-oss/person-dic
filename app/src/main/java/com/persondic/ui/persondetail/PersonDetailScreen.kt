@@ -39,6 +39,7 @@ import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.ui.common.FixedInfoBlock
+import com.persondic.ui.common.SUGGESTED_ATTRIBUTE_LABELS
 import com.persondic.ui.common.GroupTagEditor
 import com.persondic.ui.common.PhotoPickerRow
 import com.persondic.ui.common.ViewModelFactory
@@ -170,7 +171,9 @@ fun PersonDetailScreen(
             FixedInfoDialog(
                 person = loaded,
                 attributes = attributes,
-                suggestedLabels = allAttributeLabels.filterNot { label -> attributes.any { it.label == label } },
+                suggestedLabels = (allAttributeLabels + SUGGESTED_ATTRIBUTE_LABELS)
+                    .distinct()
+                    .filterNot { label -> attributes.any { it.label == label } },
                 onDismiss = { showFixedInfoDialog = false },
                 onSetBirthday = viewModel::setBirthday,
                 onSetAttribute = viewModel::setAttribute,

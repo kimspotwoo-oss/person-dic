@@ -202,8 +202,8 @@ class QuickAddParserTest {
         ).people.single()
 
         val birthday = requireNotNull(person.birthday)
-        assertEquals(LocalDate.parse("1990-03-15"), birthday.date)
-        assertEquals(true, birthday.hasYear)
+        assertEquals(LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 3, 15), birthday.monthDay)
+        assertEquals(1990, birthday.year)
         assertEquals(false, birthday.isLunar)
     }
 
@@ -212,18 +212,18 @@ class QuickAddParserTest {
         val dotted = parseQuickAdd("김민준\n생일: 1990.3.15").people.single().birthday
         val slashed = parseQuickAdd("김민준\n생일: 1990/3/15").people.single().birthday
 
-        assertEquals(LocalDate.parse("1990-03-15"), requireNotNull(dotted).date)
-        assertEquals(LocalDate.parse("1990-03-15"), requireNotNull(slashed).date)
+        assertEquals(LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 3, 15), requireNotNull(dotted).monthDay)
+        assertEquals(1990, requireNotNull(slashed).year)
     }
 
     @Test
     fun aBirthdayWithoutAYearUsesTheStandInYear() {
         val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 3-15").people.single().birthday)
 
-        assertEquals(false, birthday.hasYear)
-        assertEquals(BIRTHDAY_YEAR_UNKNOWN, birthday.date.year)
-        assertEquals(3, birthday.date.monthValue)
-        assertEquals(15, birthday.date.dayOfMonth)
+        assertNull(birthday.year)
+        assertEquals(BIRTHDAY_YEAR_UNKNOWN, requireNotNull(birthday.monthDay).year)
+        assertEquals(3, birthday.monthDay?.monthValue)
+        assertEquals(15, birthday.monthDay?.dayOfMonth)
     }
 
     @Test
@@ -231,15 +231,15 @@ class QuickAddParserTest {
         val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 음력 3-15").people.single().birthday)
 
         assertTrue(birthday.isLunar)
-        assertEquals(false, birthday.hasYear)
+        assertNull(birthday.year)
     }
 
     @Test
     fun aFebruaryTwentyNinthBirthdayWithoutAYearIsAccepted() {
         val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 2-29").people.single().birthday)
 
-        assertEquals(2, birthday.date.monthValue)
-        assertEquals(29, birthday.date.dayOfMonth)
+        assertEquals(2, birthday.monthDay?.monthValue)
+        assertEquals(29, birthday.monthDay?.dayOfMonth)
     }
 
     @Test
@@ -286,5 +286,39 @@ class QuickAddParserTest {
         val person = parseQuickAdd("김민준\n+메모: 회의 시간: 3시").people.single()
 
         assertEquals("회의 시간: 3시", person.attributes.single().value)
+    }
+
+    @Test
+    fun parsesAStandaloneBirthYear() {
+        val birthday = requireNotNull(parseQuickAdd("김민준\n년생: 1994").people.single().birthday)
+
+        assertEquals(1994, birthday.year)
+        assertNull(birthday.monthDay)
+    }
+
+    @Test
+    fun acceptsTheYearWrittenWithItsSuffix() {
+        val birthday = requireNotNull(parseQuickAdd("김민준\n년생: 1994년생").people.single().birthday)
+
+        assertEquals(1994, birthday.year)
+    }
+
+    @Test
+    fun aYearLineAndADateLineCombineIntoOneBirthday() {
+        val birthday = requireNotNull(
+            parseQuickAdd("김민준\n년생: 1994\n생일: 3-15").people.single().birthday,
+        )
+
+        assertEquals(1994, birthday.year)
+        assertEquals(3, birthday.monthDay?.monthValue)
+        assertEquals(15, birthday.monthDay?.dayOfMonth)
+    }
+
+    @Test
+    fun anImplausibleYearIsWarnedAboutNotStored() {
+        val result = parseQuickAdd("김민준\n년생: 19")
+
+        assertNull(result.people.single().birthday)
+        assertEquals(1, result.warnings.size)
     }
 }

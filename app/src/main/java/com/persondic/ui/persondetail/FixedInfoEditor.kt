@@ -3,15 +3,20 @@ package com.persondic.ui.persondetail
 import android.app.DatePickerDialog
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -28,12 +33,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
+import com.persondic.data.model.Sensitivity
+import com.persondic.ui.common.SectionLabel
 import com.persondic.ui.common.birthdayLabel
+import com.persondic.ui.common.sensitivityLabel
 import java.time.LocalDate
 
 /**
@@ -42,19 +51,22 @@ import java.time.LocalDate
  * Changes are applied as they are made rather than collected and saved at the end — each row is
  * an independent row in the database, so there is nothing to commit as a set.
  */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun FixedInfoDialog(
     person: Person,
     attributes: List<PersonAttribute>,
     suggestedLabels: List<String>,
     onDismiss: () -> Unit,
-    onSetBirthday: (LocalDate?, Boolean, Boolean) -> Unit,
-    onSetAttribute: (String, String) -> Unit,
+    onSetBirthday: (LocalDate?, Int?, Boolean) -> Unit,
+    onSetAttribute: (String, String, Sensitivity) -> Unit,
     onRemoveAttribute: (String) -> Unit,
 ) {
     val context = LocalContext.current
     var newLabel by remember { mutableStateOf("") }
     var newValue by remember { mutableStateOf("") }
+    var newSensitivity by remember { mutableStateOf(Sensitivity.NORMAL) }
+    var yearText by remember(person.birthYear) { mutableStateOf(person.birthYear?.toString().orEmpty()) }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -75,16 +87,31 @@ fun FixedInfoDialog(
                     style = MaterialTheme.typography.bodyLarge,
                 )
 
+                // 몇년생 is entered on its own: the year and the date are usually learned at
+                // different times, and one is no use as a gate on the other.
+                OutlinedTextField(
+                    value = yearText,
+                    onValueChange = { typed ->
+                        yearText = typed.filter { it.isDigit() }.take(4)
+                        onSetBirthday(person.birthday, yearText.toIntOrNull(), person.birthdayIsLunar)
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                    label = { Text(stringResource(R.string.birth_year_label)) },
+                    placeholder = { Text(stringResource(R.string.birth_year_hint)) },
+                )
+
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     OutlinedButton(
                         onClick = {
-                            val start = person.birthday ?: LocalDate.of(1990, 1, 1)
+                            val start = person.birthday ?: LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 1, 1)
                             DatePickerDialog(
                                 context,
                                 { _, year, month, dayOfMonth ->
                                     onSetBirthday(
                                         LocalDate.of(year, month + 1, dayOfMonth),
-                                        person.birthdayHasYear,
+                                        person.birthYear,
                                         person.birthdayIsLunar,
                                     )
                                 },
@@ -97,31 +124,17 @@ fun FixedInfoDialog(
                         Text(stringResource(R.string.birthday_set))
                     }
                     if (person.birthday != null) {
-                        TextButton(onClick = { onSetBirthday(null, true, false) }) {
+                        TextButton(onClick = { onSetBirthday(null, person.birthYear, false) }) {
                             Text(stringResource(R.string.birthday_clear))
                         }
                     }
                 }
 
-                // The year is still stored when it is unknown, because SQLite has no month-day
-                // type; the stand-in is a leap year so 2월 29일 survives the round trip.
-                CheckRow(
-                    checked = !person.birthdayHasYear,
-                    label = stringResource(R.string.birthday_no_year_toggle),
-                    onCheckedChange = { unknown ->
-                        val current = person.birthday
-                        onSetBirthday(
-                            if (unknown && current != null) current.withYear(BIRTHDAY_YEAR_UNKNOWN) else current,
-                            !unknown,
-                            person.birthdayIsLunar,
-                        )
-                    },
-                )
                 CheckRow(
                     checked = person.birthdayIsLunar,
                     label = stringResource(R.string.birthday_lunar_toggle),
                     onCheckedChange = { lunar ->
-                        onSetBirthday(person.birthday, person.birthdayHasYear, lunar)
+                        onSetBirthday(person.birthday, person.birthYear, lunar)
                     },
                 )
                 if (person.birthdayIsLunar) {
@@ -137,11 +150,19 @@ fun FixedInfoDialog(
                         modifier = Modifier.fillMaxWidth(),
                         verticalAlignment = Alignment.CenterVertically,
                     ) {
-                        Text(
-                            text = "${attribute.label}: ${attribute.value}",
-                            style = MaterialTheme.typography.bodyMedium,
-                            modifier = Modifier.weight(1f),
-                        )
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = "${attribute.label}: ${attribute.value}",
+                                style = MaterialTheme.typography.bodyMedium,
+                            )
+                            if (attribute.sensitivity != Sensitivity.NORMAL) {
+                                Text(
+                                    text = sensitivityLabel(attribute.sensitivity),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.primary,
+                                )
+                            }
+                        }
                         IconButton(onClick = { onRemoveAttribute(attribute.label) }) {
                             Icon(
                                 Icons.Default.Close,
@@ -159,12 +180,14 @@ fun FixedInfoDialog(
                     label = { Text(stringResource(R.string.fixed_info_attribute_label)) },
                 )
                 if (suggestedLabels.isNotEmpty()) {
-                    Text(
-                        text = suggestedLabels.joinToString("  ") { it },
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.primary,
-                        modifier = Modifier.padding(bottom = 2.dp),
-                    )
+                    FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        suggestedLabels.forEach { suggestion ->
+                            AssistChip(
+                                onClick = { newLabel = suggestion },
+                                label = { Text(suggestion) },
+                            )
+                        }
+                    }
                 }
                 OutlinedTextField(
                     value = newValue,
@@ -173,11 +196,23 @@ fun FixedInfoDialog(
                     singleLine = true,
                     label = { Text(stringResource(R.string.fixed_info_attribute_value)) },
                 )
+                SectionLabel(stringResource(R.string.fixed_info_sensitivity))
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                    Sensitivity.entries.forEach { level ->
+                        FilterChip(
+                            selected = newSensitivity == level,
+                            onClick = { newSensitivity = level },
+                            label = { Text(sensitivityLabel(level)) },
+                        )
+                    }
+                }
+
                 OutlinedButton(
                     onClick = {
-                        onSetAttribute(newLabel, newValue)
+                        onSetAttribute(newLabel, newValue, newSensitivity)
                         newLabel = ""
                         newValue = ""
+                        newSensitivity = Sensitivity.NORMAL
                     },
                     enabled = newLabel.isNotBlank() && newValue.isNotBlank(),
                     modifier = Modifier.fillMaxWidth(),

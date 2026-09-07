@@ -79,6 +79,7 @@ fun BriefingScreen(
                         person = person,
                         attributes = uiState.attributes,
                         modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                        gateSensitive = true,
                     )
                 }
             }

@@ -51,8 +51,9 @@ class QuickAddViewModel(
                     displayName = parsed.displayName,
                     alias = parsed.alias,
                     metStory = parsed.metStory,
-                    birthday = parsed.birthday?.date,
-                    birthdayHasYear = parsed.birthday?.hasYear ?: true,
+                    birthday = parsed.birthday?.monthDay,
+                    birthYear = parsed.birthday?.year,
+                    birthdayHasYear = parsed.birthday?.year != null,
                     birthdayIsLunar = parsed.birthday?.isLunar ?: false,
                 )
                 repository.addPerson(person)
