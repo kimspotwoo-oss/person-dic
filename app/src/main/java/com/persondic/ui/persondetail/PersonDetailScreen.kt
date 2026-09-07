@@ -75,6 +75,7 @@ fun PersonDetailScreen(
     val allTags by viewModel.allTags.collectAsStateWithLifecycle()
     val attributes by viewModel.attributes.collectAsStateWithLifecycle()
     val allAttributeLabels by viewModel.allAttributeLabels.collectAsStateWithLifecycle()
+    val factSourceDates by viewModel.factSourceDates.collectAsStateWithLifecycle()
     val ties by viewModel.ties.collectAsStateWithLifecycle()
     val otherPeople by viewModel.otherPeople.collectAsStateWithLifecycle()
     val allTieLabels by viewModel.allTieLabels.collectAsStateWithLifecycle()
@@ -183,7 +184,11 @@ fun PersonDetailScreen(
             }
 
             when (selectedTab) {
-                0 -> factItems(groups = factGroups, onLongPress = { actionMenuFact = it })
+                0 -> factItems(
+                    groups = factGroups,
+                    sourceDates = factSourceDates,
+                    onLongPress = { actionMenuFact = it },
+                )
                 1 -> interactionItems(
                     interactions = interactions,
                     onOpen = { onOpenInteraction(personId, it.id) },

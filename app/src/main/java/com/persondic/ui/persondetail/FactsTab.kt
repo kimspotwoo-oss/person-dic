@@ -28,6 +28,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Fact
+import java.time.LocalDate
+import java.util.UUID
 import com.persondic.domain.DerivedValues
 import com.persondic.ui.common.FactCategoryGroup
 import com.persondic.ui.common.categoryLabel
@@ -36,7 +38,11 @@ import com.persondic.ui.common.categoryLabel
  * Contributes to the person screen's single list rather than owning one, so the header can scroll
  * away and give the facts the whole screen. Nested in a fixed-height slot they were cut off.
  */
-fun LazyListScope.factItems(groups: List<FactCategoryGroup>, onLongPress: (Fact) -> Unit) {
+fun LazyListScope.factItems(
+    groups: List<FactCategoryGroup>,
+    sourceDates: Map<UUID, LocalDate>,
+    onLongPress: (Fact) -> Unit,
+) {
     if (groups.isEmpty()) {
         item(key = "facts-empty") { EmptyTabMessage(R.string.person_detail_facts_empty) }
         return
@@ -51,7 +57,11 @@ fun LazyListScope.factItems(groups: List<FactCategoryGroup>, onLongPress: (Fact)
             )
         }
         items(group.facts, key = { "fact-${it.id}" }) { fact ->
-            FactRow(fact = fact, onLongPress = { onLongPress(fact) })
+            FactRow(
+                fact = fact,
+                sourceDate = fact.sourceId?.let { sourceDates[it] },
+                onLongPress = { onLongPress(fact) },
+            )
         }
     }
 }
@@ -70,7 +80,7 @@ fun EmptyTabMessage(messageRes: Int) {
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun FactRow(fact: Fact, onLongPress: () -> Unit) {
+private fun FactRow(fact: Fact, sourceDate: LocalDate?, onLongPress: () -> Unit) {
     val stale = DerivedValues.isStale(fact)
     Row(
         modifier = Modifier
@@ -80,7 +90,20 @@ private fun FactRow(fact: Fact, onLongPress: () -> Unit) {
             .alpha(if (stale) 0.5f else 1f),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(text = fact.body, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Column(modifier = Modifier.weight(1f)) {
+            Text(text = fact.body, style = MaterialTheme.typography.bodyLarge)
+            sourceDate?.let {
+                Text(
+                    text = stringResource(
+                        R.string.fact_from_meeting,
+                        it.monthValue,
+                        it.dayOfMonth,
+                    ),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+        }
         if (fact.pinned) {
             Spacer(modifier = Modifier.width(8.dp))
             Icon(

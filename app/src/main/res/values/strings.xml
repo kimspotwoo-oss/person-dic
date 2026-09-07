@@ -81,6 +81,7 @@
     <string name="fact_field_sensitivity">민감도</string>
     <string name="fact_field_pinned">브리핑 상단 고정</string>
     <string name="fact_add">사실 추가</string>
+    <string name="fact_from_meeting">%1$d월 %2$d일 만남에서</string>
     <string name="fact_needs_review_badge">확인 필요</string>
 
     <string name="person_detail_view_briefing">브리핑 보기</string>

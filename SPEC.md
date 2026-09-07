@@ -74,6 +74,7 @@ groupTag: String?              // (레거시) Phase 0.5부터 4.8 PersonGroupTag
 metOn: LocalDate?              // 알게 된 시점
 metStory: String?              // 어떻게 알게 되었는지
 photoUri: String?              // Phase 0.5부터 실제 사용. 앱 내부 저장소에 복사한 사진의 절대 경로. null이면 이니셜 아바타
+birthday / birthYear / birthdayIsLunar / birthdayHasYear   // 고정 정보. 4.9 참조
 createdAt / updatedAt: Instant
 ```
 

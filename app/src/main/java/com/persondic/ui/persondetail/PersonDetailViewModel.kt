@@ -22,6 +22,7 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.UUID
 
 class PersonDetailViewModel(
@@ -35,6 +36,18 @@ class PersonDetailViewModel(
     val factGroups: StateFlow<List<FactCategoryGroup>> = repository.observeFacts(personId)
         .map(::groupByCategory)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    /**
+     * When each fact's source meeting happened, for the facts that came out of one.
+     *
+     * The meeting screen already shows what was learned there; this is the same link read the
+     * other way, so a fact can say where it came from.
+     */
+    val factSourceDates: StateFlow<Map<UUID, LocalDate>> = repository.observeInteractions(personId)
+        .map { interactions ->
+            interactions.associate { it.id to it.metAt.atZone(ZoneId.systemDefault()).toLocalDate() }
+        }
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyMap())
 
     val interactions: StateFlow<List<Interaction>> = repository.observeInteractions(personId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
