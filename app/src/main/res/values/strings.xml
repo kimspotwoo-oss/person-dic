@@ -28,8 +28,9 @@
     <string name="group_map_open">그룹 맵</string>
     <string name="group_map_title">그룹 맵</string>
     <string name="group_map_empty">아직 그룹이 없습니다. 인물에 그룹을 붙이면 여기에 나타납니다.</string>
-    <string name="group_map_hint">원이 클수록 인원이 많고, 겹치는 사람이 많은 그룹끼리 가까이 놓입니다. 원을 2~3개 탭하면 아래에 벤 다이어그램이 나옵니다.</string>
+    <string name="group_map_hint">원이 클수록 인원이 많고, 겹치는 사람이 많은 그룹끼리 가까이 놓입니다. 원을 2~3개 탭하면 아래에 벤 다이어그램이 나오고, 각 영역 안에 이름이 표시됩니다.</string>
     <string name="group_map_clear">선택 해제</string>
+    <string name="group_map_more_members">외 %1$d명</string>
 
     <string name="person_list_search_hint">이름, 별명, 그룹, 사실 내용으로 검색</string>
     <string name="person_list_group_toggle">그룹별로 보기</string>

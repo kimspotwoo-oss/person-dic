@@ -14,9 +14,16 @@ data class GroupMapUiState(
     val peopleById: Map<UUID, Person> = emptyMap(),
 )
 
-/** A single area of a Venn diagram, e.g. "in A and B but not C". [center] is normalized 0..1. */
+/**
+ * A single area of a Venn diagram, e.g. "in A and B but not C".
+ *
+ * [center] is where the region's names are written and [clearance] is the radius of the largest
+ * circle that fits inside the region around that point — how much room the names have. Both are
+ * normalized to the 0..1 drawing square.
+ */
 data class VennRegion(
     val label: String,
     val memberIds: List<UUID>,
     val center: Offset,
+    val clearance: Float,
 )
