@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.persondic.data.local.entity.Attendance
 import com.persondic.data.local.entity.Interaction
 import kotlinx.coroutines.flow.Flow
@@ -44,4 +45,16 @@ interface InteractionDao {
         """,
     )
     suspend fun lastInteractionAt(personId: UUID): Instant?
+
+    @Query("SELECT * FROM interaction")
+    suspend fun getAllInteractions(): List<Interaction>
+
+    @Query("SELECT * FROM attendance")
+    suspend fun getAllAttendances(): List<Attendance>
+
+    @Upsert
+    suspend fun upsertInteractions(interactions: List<Interaction>)
+
+    @Upsert
+    suspend fun upsertAttendances(attendances: List<Attendance>)
 }

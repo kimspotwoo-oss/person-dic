@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.model.CommitmentStatus
 import kotlinx.coroutines.flow.Flow
@@ -27,4 +28,10 @@ interface CommitmentDao {
 
     @Query("SELECT * FROM commitment WHERE personId = :personId AND status = :status ORDER BY createdAt DESC")
     fun observeForPersonByStatus(personId: UUID, status: CommitmentStatus): Flow<List<Commitment>>
+
+    @Query("SELECT * FROM commitment")
+    suspend fun getAll(): List<Commitment>
+
+    @Upsert
+    suspend fun upsertAll(commitments: List<Commitment>)
 }

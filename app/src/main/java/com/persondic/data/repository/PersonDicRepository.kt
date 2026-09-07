@@ -1,10 +1,15 @@
 package com.persondic.data.repository
 
+import androidx.room.withTransaction
+import com.persondic.data.backup.BackupSnapshot
+import com.persondic.data.backup.planImportMerge
+import com.persondic.data.local.AppDatabase
 import com.persondic.data.local.dao.CommitmentDao
 import com.persondic.data.local.dao.FactDao
 import com.persondic.data.local.dao.GroupTagDao
 import com.persondic.data.local.dao.InteractionDao
 import com.persondic.data.local.dao.PersonDao
+import com.persondic.data.local.dao.TieDao
 import com.persondic.data.local.entity.Attendance
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
@@ -20,11 +25,13 @@ import java.time.LocalDate
 import java.util.UUID
 
 class PersonDicRepository(
+    private val database: AppDatabase,
     private val personDao: PersonDao,
     private val factDao: FactDao,
     private val interactionDao: InteractionDao,
     private val commitmentDao: CommitmentDao,
     private val groupTagDao: GroupTagDao,
+    private val tieDao: TieDao,
 ) {
 
     // Person
@@ -115,4 +122,45 @@ class PersonDicRepository(
     suspend fun updateCommitment(commitment: Commitment) = commitmentDao.update(commitment)
 
     suspend fun deleteCommitment(commitment: Commitment) = commitmentDao.delete(commitment)
+
+    // Backup
+
+    suspend fun exportSnapshot(): BackupSnapshot = BackupSnapshot(
+        people = personDao.getAll(),
+        facts = factDao.getAll(),
+        interactions = interactionDao.getAllInteractions(),
+        attendances = interactionDao.getAllAttendances(),
+        commitments = commitmentDao.getAll(),
+        groupTags = groupTagDao.getAll(),
+        ties = tieDao.getAll(),
+    )
+
+    /**
+     * Restores a backup by merging: rows are matched on their id, so re-importing the same file is
+     * a no-op and anything added since the backup survives. Runs as one transaction, so a failure
+     * part-way leaves the database exactly as it was rather than half-restored.
+     *
+     * Child rows whose owner is neither in the backup nor already in the database are dropped: the
+     * foreign keys would reject them and take the whole restore down with them. The count of those
+     * comes back so the screen can say something was left out.
+     */
+    suspend fun importSnapshot(snapshot: BackupSnapshot): Int = database.withTransaction {
+        // Parents first, so the child rows below can be checked against everything that now exists.
+        personDao.upsertAll(snapshot.people)
+        interactionDao.upsertInteractions(snapshot.interactions)
+
+        val plan = planImportMerge(
+            snapshot = snapshot,
+            knownPeople = personDao.getAll().mapTo(mutableSetOf()) { it.id },
+            knownInteractions = interactionDao.getAllInteractions().mapTo(mutableSetOf()) { it.id },
+        )
+
+        factDao.upsertAll(plan.facts)
+        commitmentDao.upsertAll(plan.commitments)
+        groupTagDao.upsertAll(plan.groupTags)
+        tieDao.upsertAll(plan.ties)
+        interactionDao.upsertAttendances(plan.attendances)
+
+        plan.dropped
+    }
 }

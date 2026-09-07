@@ -7,6 +7,9 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.UUID
 
+/** Where person photos live. Backup reads and restores into the same folder. */
+fun photosDir(context: Context): File = File(context.filesDir, "photos")
+
 /**
  * The system photo picker only grants short-lived read access to the URI it returns, so storing
  * that URI would leave a broken avatar after the next launch. Copying the bytes into app-internal
@@ -15,7 +18,7 @@ import java.util.UUID
 suspend fun copyImageToInternalStorage(context: Context, source: Uri): String? =
     withContext(Dispatchers.IO) {
         runCatching {
-            val dir = File(context.filesDir, "photos").apply { mkdirs() }
+            val dir = photosDir(context).apply { mkdirs() }
             val target = File(dir, "${UUID.randomUUID()}.jpg")
             context.contentResolver.openInputStream(source)?.use { input ->
                 target.outputStream().use { output -> input.copyTo(output) }

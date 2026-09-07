@@ -77,4 +77,32 @@
     <string name="commitment_action_reopen">다시 열기</string>
     <string name="commitment_action_done">완료 처리</string>
     <string name="commitment_action_dropped">취소 처리</string>
+
+    <string name="menu_more">더보기</string>
+
+    <string name="backup_open">백업 / 복원</string>
+    <string name="backup_title">백업 / 복원</string>
+    <string name="backup_intro">내보내기를 누르면 인물·사실·만남 기록·약속·그룹·사진을 zip 파일 하나로 저장합니다. 저장 위치는 직접 고르며, 파일은 기기 밖으로 나가지 않습니다.</string>
+    <string name="backup_export">내보내기 (zip으로 저장)</string>
+    <string name="backup_import_note">가져오기는 덮어쓰기가 아니라 병합입니다. 같은 항목은 백업 내용으로 갱신되고, 백업 이후에 추가한 내용은 그대로 남습니다.</string>
+    <string name="backup_import">가져오기 (zip 불러오기)</string>
+    <string name="backup_export_done">내보내기 완료 — 인물 %1$d명, 사실 %2$d건, 사진 %3$d장</string>
+    <string name="backup_import_done">가져오기 완료 — 인물 %1$d명, 사실 %2$d건, 사진 %3$d장</string>
+    <string name="backup_import_skipped">읽을 수 없어 건너뛴 항목 %1$d건.</string>
+    <string name="backup_error_not_a_backup">이 파일은 이 앱의 백업이 아닙니다.</string>
+    <string name="backup_error_unsupported_version">더 새로운 버전에서 만든 백업이라 읽을 수 없습니다. 앱을 업데이트해 주세요.</string>
+    <string name="backup_error_unreadable">파일이 손상되어 읽을 수 없습니다.</string>
+    <string name="backup_error_no_stream">파일을 열 수 없습니다. 다른 위치를 선택해 보세요.</string>
+    <string name="backup_error_generic">처리 중 문제가 생겼습니다. 데이터는 그대로입니다.</string>
+
+    <string name="quick_add_open">빠른 추가</string>
+    <string name="quick_add_title">빠른 추가</string>
+    <string name="quick_add_format_help">양식</string>
+    <string name="quick_add_input_label">양식 텍스트</string>
+    <string name="quick_add_input_hint">이름 @그룹\n- 사실 *영구\n? 확인할 것\n! 내가 할 것</string>
+    <string name="quick_add_preview_title">미리보기 — %1$d명</string>
+    <string name="quick_add_preview_alias">별명: %1$s</string>
+    <string name="quick_add_preview_story">계기: %1$s</string>
+    <string name="quick_add_save">%1$d명 저장</string>
+    <string name="quick_add_format_example">김민준 @대학동창 @등산\n별명: 민준이\n계기: 동아리에서 처음 만남\n- 갑각류 알레르기 *영구 *주의\n- 아들 고3 *계절\n- 등산 코스 추천받기 *화제\n? 이직 결과 물어보기\n! 책 빌려주기\n---\n이서연 @회사\n- 커피보다 차 *취향\n\n@그룹 : 해시태그 (#도 됨)\n- : 사실   ? : 확인할 것   ! : 내가 할 것\n--- : 다음 사람\n*표시 : 관계 계기 취향 생활 화제 / 영구 천천히 계절 일회 / 비공개 민감 / 주의\n표시가 없으면 생활 · 계절로 저장됩니다.</string>
 </resources>

@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import com.persondic.data.local.entity.PersonGroupTag
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
@@ -28,4 +29,10 @@ interface GroupTagDao {
 
     @Query("SELECT DISTINCT personId FROM person_group_tag WHERE tag LIKE '%' || :query || '%'")
     suspend fun findPersonIdsMatchingTag(query: String): List<UUID>
+
+    @Query("SELECT * FROM person_group_tag")
+    suspend fun getAll(): List<PersonGroupTag>
+
+    @Upsert
+    suspend fun upsertAll(tags: List<PersonGroupTag>)
 }

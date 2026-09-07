@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.persondic.data.local.entity.Person
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
@@ -26,4 +27,10 @@ interface PersonDao {
 
     @Query("SELECT * FROM person ORDER BY displayName ASC")
     fun observeAll(): Flow<List<Person>>
+
+    @Query("SELECT * FROM person")
+    suspend fun getAll(): List<Person>
+
+    @Upsert
+    suspend fun upsertAll(people: List<Person>)
 }

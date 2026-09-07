@@ -7,12 +7,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.persondic.ui.backup.BackupScreen
 import com.persondic.ui.briefing.BriefingScreen
 import com.persondic.ui.factedit.FactEditScreen
 import com.persondic.ui.groupmap.GroupMapScreen
 import com.persondic.ui.interactionlog.InteractionLogScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
 import com.persondic.ui.personlist.PersonListScreen
+import com.persondic.ui.quickadd.QuickAddScreen
 import java.util.UUID
 
 @Composable
@@ -22,10 +24,18 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
             PersonListScreen(
                 onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
                 onGroupMapClick = { navController.navigate(Routes.GROUP_MAP) },
+                onQuickAddClick = { navController.navigate(Routes.QUICK_ADD) },
+                onBackupClick = { navController.navigate(Routes.BACKUP) },
             )
         }
         composable(Routes.GROUP_MAP) {
             GroupMapScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.QUICK_ADD) {
+            QuickAddScreen(onDone = { navController.popBackStack() })
+        }
+        composable(Routes.BACKUP) {
+            BackupScreen(onBack = { navController.popBackStack() })
         }
         composable(
             route = Routes.PERSON_DETAIL,

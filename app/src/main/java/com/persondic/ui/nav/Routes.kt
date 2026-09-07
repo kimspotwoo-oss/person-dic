@@ -9,6 +9,8 @@ object Routes {
     const val BRIEFING = "briefing/{personId}"
     const val INTERACTION_LOG = "interactionLog/{personId}"
     const val GROUP_MAP = "groupMap"
+    const val QUICK_ADD = "quickAdd"
+    const val BACKUP = "backup"
 
     fun personDetail(personId: UUID): String = "personDetail/$personId"
 

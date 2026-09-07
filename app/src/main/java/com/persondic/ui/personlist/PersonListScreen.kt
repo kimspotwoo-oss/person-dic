@@ -14,14 +14,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Search
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -40,10 +46,13 @@ import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun PersonListScreen(
     onPersonClick: (UUID) -> Unit,
     onGroupMapClick: () -> Unit,
+    onQuickAddClick: () -> Unit,
+    onBackupClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
@@ -52,9 +61,43 @@ fun PersonListScreen(
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     var showAddDialog by rememberSaveable { mutableStateOf(false) }
+    var showMenu by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.app_name)) },
+                actions = {
+                    IconButton(onClick = { showMenu = true }) {
+                        Icon(Icons.Default.MoreVert, contentDescription = stringResource(R.string.menu_more))
+                    }
+                    DropdownMenu(expanded = showMenu, onDismissRequest = { showMenu = false }) {
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.group_map_open)) },
+                            onClick = {
+                                showMenu = false
+                                onGroupMapClick()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.quick_add_open)) },
+                            onClick = {
+                                showMenu = false
+                                onQuickAddClick()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.backup_open)) },
+                            onClick = {
+                                showMenu = false
+                                onBackupClick()
+                            },
+                        )
+                    }
+                },
+            )
+        },
         floatingActionButton = {
             FloatingActionButton(onClick = { showAddDialog = true }) {
                 Icon(Icons.Default.Add, contentDescription = stringResource(R.string.person_list_add))
@@ -84,14 +127,6 @@ fun PersonListScreen(
                 horizontalArrangement = Arrangement.End,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text(
-                    text = stringResource(R.string.group_map_open),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier
-                        .clickable(onClick = onGroupMapClick)
-                        .padding(end = 16.dp),
-                )
                 Text(stringResource(R.string.person_list_group_toggle))
                 Spacer(modifier = Modifier.width(8.dp))
                 Switch(checked = uiState.isGroupedByTag, onCheckedChange = { viewModel.onToggleGroupByTag() })

@@ -5,6 +5,7 @@ import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.Query
 import androidx.room.Update
+import androidx.room.Upsert
 import com.persondic.data.local.entity.Fact
 import kotlinx.coroutines.flow.Flow
 import java.util.UUID
@@ -29,4 +30,10 @@ interface FactDao {
 
     @Query("SELECT DISTINCT personId FROM fact WHERE body LIKE '%' || :query || '%'")
     suspend fun findPersonIdsMatchingBody(query: String): List<UUID>
+
+    @Query("SELECT * FROM fact")
+    suspend fun getAll(): List<Fact>
+
+    @Upsert
+    suspend fun upsertAll(facts: List<Fact>)
 }

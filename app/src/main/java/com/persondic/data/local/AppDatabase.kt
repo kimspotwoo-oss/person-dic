@@ -8,6 +8,7 @@ import com.persondic.data.local.dao.FactDao
 import com.persondic.data.local.dao.GroupTagDao
 import com.persondic.data.local.dao.InteractionDao
 import com.persondic.data.local.dao.PersonDao
+import com.persondic.data.local.dao.TieDao
 import com.persondic.data.local.entity.Attendance
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
@@ -36,4 +37,5 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun interactionDao(): InteractionDao
     abstract fun commitmentDao(): CommitmentDao
     abstract fun groupTagDao(): GroupTagDao
+    abstract fun tieDao(): TieDao
 }
