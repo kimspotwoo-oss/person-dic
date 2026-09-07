@@ -2,7 +2,6 @@ package com.persondic.ui.groupmap
 
 import androidx.compose.ui.geometry.Offset
 import java.util.UUID
-import kotlin.math.abs
 import kotlin.math.hypot
 
 data class VennCircle(
@@ -11,10 +10,36 @@ data class VennCircle(
     val radius: Float,
 )
 
-/** Where a region's label goes, and how much room it has. Both normalized to the 0..1 square. */
-data class RegionAnchor(
+/** The rectangle the diagram occupies, so it can be scaled to fill whatever space it is given. */
+data class VennBounds(
+    val minX: Float,
+    val minY: Float,
+    val maxX: Float,
+    val maxY: Float,
+) {
+    val width: Float get() = maxX - minX
+    val height: Float get() = maxY - minY
+    val aspectRatio: Float get() = width / height
+}
+
+/**
+ * The largest axis-aligned rectangle that fits inside a region — where its names are written.
+ *
+ * A rectangle rather than the largest inscribed circle, because names wrap: a crescent that is
+ * tall and narrow holds a stacked list, and a wide one holds names side by side. Fitting a square
+ * to the inscribed circle threw away most of that width.
+ */
+data class RegionBox(
     val center: Offset,
-    val clearance: Float,
+    val width: Float,
+    val height: Float,
+)
+
+fun vennBounds(circles: List<VennCircle>): VennBounds = VennBounds(
+    minX = circles.minOf { it.center.x - it.radius },
+    minY = circles.minOf { it.center.y - it.radius },
+    maxX = circles.maxOf { it.center.x + it.radius },
+    maxY = circles.maxOf { it.center.y + it.radius },
 )
 
 /** Fixed, readable layouts. A true Venn diagram is only drawable for 2 or 3 sets. */
@@ -42,17 +67,17 @@ fun vennRegions(selected: List<GroupBubble>): List<VennRegion> {
     val circles = vennCircles(selected)
     if (circles.isEmpty()) return emptyList()
 
+    val bounds = vennBounds(circles)
     val union = selected.flatMap { it.memberIds }.distinct()
 
     return (1 until (1 shl selected.size))
         .sortedBy { mask -> Integer.bitCount(mask) }
         .mapNotNull { mask ->
-            val anchor = regionAnchor(circles, mask) ?: return@mapNotNull null
+            val box = regionBox(circles, mask, bounds) ?: return@mapNotNull null
             VennRegion(
                 label = regionLabel(selected, mask),
                 memberIds = union.filter { id -> membershipMask(selected, id) == mask },
-                center = anchor.center,
-                clearance = anchor.clearance,
+                box = box,
             )
         }
 }
@@ -68,37 +93,71 @@ private fun regionLabel(selected: List<GroupBubble>, mask: Int): String {
 }
 
 /**
- * The best place to write a region's name list: the point inside the region that sits farthest
- * from every edge, along with how much room that leaves.
+ * The largest axis-aligned rectangle that fits entirely inside one region.
  *
- * Each region is an intersection of discs and disc complements, so the distance from a point to
- * the region's boundary is exactly the smallest distance to any circle's edge. That makes this a
- * direct scan over a grid rather than an approximation of an outline, and it means the label box
- * never has to be hand-tuned when the layout changes.
+ * The region is sampled onto a grid and the classic largest-rectangle-in-a-histogram scan is run
+ * over it, one row at a time. Maximising area is the right target because the names wrap: how many
+ * fit depends on the area, not on how square the space is.
  */
-fun regionAnchor(circles: List<VennCircle>, mask: Int): RegionAnchor? {
-    var best: RegionAnchor? = null
+fun regionBox(circles: List<VennCircle>, mask: Int, bounds: VennBounds): RegionBox? {
+    val cellWidth = bounds.width / (REGION_GRID - 1)
+    val cellHeight = bounds.height / (REGION_GRID - 1)
 
-    for (iy in 0 until ANCHOR_GRID) {
-        val y = iy / (ANCHOR_GRID - 1f)
-        for (ix in 0 until ANCHOR_GRID) {
-            val x = ix / (ANCHOR_GRID - 1f)
-
-            var clearance = Float.MAX_VALUE
-            var inRegion = true
-            circles.forEachIndexed { i, circle ->
-                val distance = hypot(x - circle.center.x, y - circle.center.y)
-                if ((distance <= circle.radius) != ((mask shr i) and 1 == 1)) inRegion = false
-                clearance = minOf(clearance, abs(distance - circle.radius))
-            }
-
-            if (inRegion && clearance > (best?.clearance ?: 0f)) {
-                best = RegionAnchor(Offset(x, y), clearance)
+    val inside = Array(REGION_GRID) { iy ->
+        val y = bounds.minY + iy * cellHeight
+        BooleanArray(REGION_GRID) { ix ->
+            val x = bounds.minX + ix * cellWidth
+            circles.indices.all { i ->
+                val circle = circles[i]
+                val within = hypot(x - circle.center.x, y - circle.center.y) <= circle.radius
+                within == ((mask shr i) and 1 == 1)
             }
         }
     }
 
-    return best
+    val heights = IntArray(REGION_GRID)
+    var bestArea = 0
+    var bestLeft = 0
+    var bestRight = -1
+    var bestTop = 0
+    var bestBottom = -1
+
+    for (iy in 0 until REGION_GRID) {
+        for (ix in 0 until REGION_GRID) {
+            heights[ix] = if (inside[iy][ix]) heights[ix] + 1 else 0
+        }
+
+        val stack = ArrayDeque<Int>()
+        for (ix in 0..REGION_GRID) {
+            val current = if (ix == REGION_GRID) 0 else heights[ix]
+            while (stack.isNotEmpty() && heights[stack.last()] >= current) {
+                val top = stack.removeLast()
+                val barHeight = heights[top]
+                val left = if (stack.isEmpty()) 0 else stack.last() + 1
+                val area = barHeight * (ix - left)
+                if (barHeight > 0 && area > bestArea) {
+                    bestArea = area
+                    bestLeft = left
+                    bestRight = ix - 1
+                    bestTop = iy - barHeight + 1
+                    bestBottom = iy
+                }
+            }
+            stack.addLast(ix)
+        }
+    }
+
+    if (bestArea == 0) return null
+
+    val x0 = bounds.minX + bestLeft * cellWidth
+    val x1 = bounds.minX + bestRight * cellWidth
+    val y0 = bounds.minY + bestTop * cellHeight
+    val y1 = bounds.minY + bestBottom * cellHeight
+    return RegionBox(
+        center = Offset((x0 + x1) / 2f, (y0 + y1) / 2f),
+        width = x1 - x0,
+        height = y1 - y0,
+    )
 }
 
-private const val ANCHOR_GRID = 161
+private const val REGION_GRID = 121

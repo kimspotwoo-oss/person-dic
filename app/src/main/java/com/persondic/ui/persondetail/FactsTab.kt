@@ -6,11 +6,10 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
@@ -33,28 +32,39 @@ import com.persondic.domain.DerivedValues
 import com.persondic.ui.common.FactCategoryGroup
 import com.persondic.ui.common.categoryLabel
 
-@Composable
-fun FactsTab(groups: List<FactCategoryGroup>, onLongPress: (Fact) -> Unit) {
+/**
+ * Contributes to the person screen's single list rather than owning one, so the header can scroll
+ * away and give the facts the whole screen. Nested in a fixed-height slot they were cut off.
+ */
+fun LazyListScope.factItems(groups: List<FactCategoryGroup>, onLongPress: (Fact) -> Unit) {
     if (groups.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.person_detail_facts_empty))
-        }
+        item(key = "facts-empty") { EmptyTabMessage(R.string.person_detail_facts_empty) }
         return
     }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        groups.forEach { group ->
-            item(key = "cat-${group.category}") {
-                Text(
-                    text = categoryLabel(group.category),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
-                )
-            }
-            items(group.facts, key = { it.id.toString() }) { fact ->
-                FactRow(fact = fact, onLongPress = { onLongPress(fact) })
-            }
+    groups.forEach { group ->
+        item(key = "cat-${group.category}") {
+            Text(
+                text = categoryLabel(group.category),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+            )
         }
+        items(group.facts, key = { "fact-${it.id}" }) { fact ->
+            FactRow(fact = fact, onLongPress = { onLongPress(fact) })
+        }
+    }
+}
+
+@Composable
+fun EmptyTabMessage(messageRes: Int) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(32.dp),
+        contentAlignment = Alignment.Center,
+    ) {
+        Text(stringResource(messageRes))
     }
 }
 

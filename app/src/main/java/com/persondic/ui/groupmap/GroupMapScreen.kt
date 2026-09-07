@@ -5,10 +5,10 @@ import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
@@ -212,6 +212,7 @@ private fun BubbleMap(
 @Composable
 private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
     val circles = remember(selected) { vennCircles(selected) }
+    val bounds = remember(selected) { vennBounds(circles) }
     val regions = remember(selected) { vennRegions(selected) }
     val primary = MaterialTheme.colorScheme.primary
     val onSurface = MaterialTheme.colorScheme.onSurface
@@ -222,31 +223,31 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
         modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
     )
 
-    // The diagram is drawn into a centred square. Mapping x by width and radii by min(width,
-    // height) would pull the circles apart on a wide screen until the overlaps no longer matched
-    // the geometry the region anchors were computed from.
+    // The container is shaped like the diagram and the diagram is scaled to fill it, so none of
+    // the width goes to empty margin — that is what makes the circles, and the room for names
+    // inside them, as large as the screen allows.
     BoxWithConstraints(
         modifier = Modifier
             .fillMaxWidth()
-            .aspectRatio(1f),
+            .aspectRatio(bounds.aspectRatio),
     ) {
-        val side = min(constraints.maxWidth, constraints.maxHeight).toFloat()
-        val originX = (constraints.maxWidth - side) / 2f
-        val originY = (constraints.maxHeight - side) / 2f
-        fun place(point: Offset) = Offset(originX + point.x * side, originY + point.y * side)
+        val boxWidth = constraints.maxWidth.toFloat()
+        val boxHeight = constraints.maxHeight.toFloat()
+        val scale = min(boxWidth / bounds.width, boxHeight / bounds.height)
+        val originX = (boxWidth - bounds.width * scale) / 2f
+        val originY = (boxHeight - bounds.height * scale) / 2f
+        fun place(point: Offset) = Offset(
+            originX + (point.x - bounds.minX) * scale,
+            originY + (point.y - bounds.minY) * scale,
+        )
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             circles.forEach { circle ->
                 val centerPx = place(circle.center)
+                drawCircle(color = primary, radius = circle.radius * scale, center = centerPx, alpha = 0.16f)
                 drawCircle(
                     color = primary,
-                    radius = circle.radius * side,
-                    center = centerPx,
-                    alpha = 0.16f,
-                )
-                drawCircle(
-                    color = primary,
-                    radius = circle.radius * side,
+                    radius = circle.radius * scale,
                     center = centerPx,
                     style = Stroke(width = 3f),
                 )
@@ -255,51 +256,49 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
 
         val density = LocalDensity.current
         regions.filter { it.memberIds.isNotEmpty() }.forEach { region ->
-            // clearance is the radius of the largest circle that fits in the region, so the
-            // largest square that fits inside it has a side of clearance * √2. Staying just under
-            // that keeps the corners of the text box inside the region too, not only its middle.
-            val boxSidePx = region.clearance * side * 1.40f
-            val boxSideDp = with(density) { boxSidePx.toDp() }
-            val anchorPx = place(region.center)
+            val widthPx = region.box.width * scale
+            val heightPx = region.box.height * scale
+            val widthDp = with(density) { widthPx.toDp() }
+            val heightDp = with(density) { heightPx.toDp() }
+            val anchorPx = place(region.box.center)
 
-            // One line per name plus a little slack, so a region only ever shows what fits inside
-            // it and says how many it had to leave out.
-            val capacity = (boxSideDp / NAME_LINE_HEIGHT).toInt().coerceAtLeast(1)
+            // Dividing by the font scale is what keeps the estimate honest when the reader has
+            // text enlarged: the box is fixed, so the room has to shrink instead.
+            val fontScale = density.fontScale
             val names = region.memberIds.mapNotNull { uiState.peopleById[it]?.displayName }
-            val shown = if (names.size <= capacity) names else names.take((capacity - 1).coerceAtLeast(1))
-            val hidden = names.size - shown.size
+            val packed = packNames(names, widthDp.value / fontScale, heightDp.value / fontScale)
+            val overflow = stringResource(R.string.group_map_more_members, packed.hidden)
+            val text = buildString {
+                append(packed.shown.joinToString(NAME_SEPARATOR))
+                if (packed.showOverflowMarker && packed.hidden > 0) {
+                    if (isNotEmpty()) append(NAME_SEPARATOR)
+                    append(overflow)
+                }
+            }
 
-            Box(
-                modifier = Modifier
-                    .offset {
-                        IntOffset(
-                            x = (anchorPx.x - boxSidePx / 2f).roundToInt(),
-                            y = (anchorPx.y - boxSidePx / 2f).roundToInt(),
-                        )
-                    }
-                    .size(boxSideDp)
-                    .clipToBounds(),
-                contentAlignment = Alignment.Center,
-            ) {
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    shown.forEach { name ->
-                        Text(
-                            text = name,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            textAlign = TextAlign.Center,
-                        )
-                    }
-                    if (hidden > 0) {
-                        Text(
-                            text = stringResource(R.string.group_map_more_members, hidden),
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1,
-                        )
-                    }
+            if (text.isNotEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .offset {
+                            IntOffset(
+                                x = (anchorPx.x - widthPx / 2f).roundToInt(),
+                                y = (anchorPx.y - heightPx / 2f).roundToInt(),
+                            )
+                        }
+                        .size(width = widthDp, height = heightDp)
+                        .clipToBounds(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    Text(
+                        text = text,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = onSurface,
+                        textAlign = TextAlign.Center,
+                        maxLines = (heightDp.value / (NAME_LINE_HEIGHT.value * fontScale))
+                            .toInt()
+                            .coerceAtLeast(1),
+                        overflow = TextOverflow.Clip,
+                    )
                 }
             }
         }
@@ -324,5 +323,7 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
     Box(modifier = Modifier.height(24.dp))
 }
 
-/** Rough line box for a name in the diagram, used to decide how many fit in a region. */
-private val NAME_LINE_HEIGHT = 16.dp
+private const val NAME_SEPARATOR = "  "
+
+/** Line box for a name in the diagram. Must match NamePacking's own line height. */
+private val NAME_LINE_HEIGHT = 15.dp

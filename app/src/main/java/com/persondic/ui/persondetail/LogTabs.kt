@@ -3,17 +3,13 @@ package com.persondic.ui.persondetail
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -28,76 +24,66 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-@Composable
-fun InteractionsTab(interactions: List<Interaction>, onOpen: (Interaction) -> Unit) {
+fun LazyListScope.interactionItems(interactions: List<Interaction>, onOpen: (Interaction) -> Unit) {
     if (interactions.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.person_detail_interactions_empty))
-        }
+        item(key = "interactions-empty") { EmptyTabMessage(R.string.person_detail_interactions_empty) }
         return
     }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(interactions, key = { it.id.toString() }) { interaction ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onOpen(interaction) }
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-            ) {
+    items(interactions, key = { "interaction-${it.id}" }) { interaction ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clickable { onOpen(interaction) }
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            Text(
+                text = interaction.summary?.takeIf { it.isNotBlank() } ?: interactionKindLabel(interaction.kind),
+                style = MaterialTheme.typography.bodyLarge,
+            )
+            interaction.notes?.takeIf { it.isNotBlank() }?.let { notes ->
                 Text(
-                    text = interaction.summary?.takeIf { it.isNotBlank() } ?: interactionKindLabel(interaction.kind),
-                    style = MaterialTheme.typography.bodyLarge,
+                    text = notes,
+                    style = MaterialTheme.typography.bodyMedium,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
-                interaction.notes?.takeIf { it.isNotBlank() }?.let { notes ->
-                    Text(
-                        text = notes,
-                        style = MaterialTheme.typography.bodyMedium,
-                        maxLines = 2,
-                        overflow = TextOverflow.Ellipsis,
-                    )
-                }
-                val meta = listOfNotNull(interaction.place, formatDate(interaction.metAt)).joinToString(" · ")
-                if (meta.isNotEmpty()) {
-                    Text(
-                        text = meta,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
             }
-        }
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun CommitmentsTab(commitments: List<Commitment>, onLongPress: (Commitment) -> Unit) {
-    if (commitments.isEmpty()) {
-        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            Text(stringResource(R.string.person_detail_commitments_empty))
-        }
-        return
-    }
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
-        items(commitments, key = { it.id.toString() }) { commitment ->
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .combinedClickable(onClick = {}, onLongClick = { onLongPress(commitment) })
-                    .padding(horizontal = 16.dp, vertical = 10.dp),
-            ) {
-                Text(text = commitment.body, style = MaterialTheme.typography.bodyLarge)
-                val meta = listOfNotNull(
-                    directionLabel(commitment.direction),
-                    commitmentStatusLabel(commitment.status),
-                    commitment.dueOn?.let { formatDueDate(it) },
-                ).joinToString(" · ")
+            val meta = listOfNotNull(interaction.place, formatDate(interaction.metAt)).joinToString(" · ")
+            if (meta.isNotEmpty()) {
                 Text(
                     text = meta,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
+        }
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+fun LazyListScope.commitmentItems(commitments: List<Commitment>, onLongPress: (Commitment) -> Unit) {
+    if (commitments.isEmpty()) {
+        item(key = "commitments-empty") { EmptyTabMessage(R.string.person_detail_commitments_empty) }
+        return
+    }
+    items(commitments, key = { "commitment-${it.id}" }) { commitment ->
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .combinedClickable(onClick = {}, onLongClick = { onLongPress(commitment) })
+                .padding(horizontal = 16.dp, vertical = 10.dp),
+        ) {
+            Text(text = commitment.body, style = MaterialTheme.typography.bodyLarge)
+            val meta = listOfNotNull(
+                directionLabel(commitment.direction),
+                commitmentStatusLabel(commitment.status),
+                commitment.dueOn?.let { formatDueDate(it) },
+            ).joinToString(" · ")
+            Text(
+                text = meta,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
         }
     }
 }

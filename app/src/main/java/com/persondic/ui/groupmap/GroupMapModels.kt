@@ -1,6 +1,5 @@
 package com.persondic.ui.groupmap
 
-import androidx.compose.ui.geometry.Offset
 import com.persondic.data.local.entity.Person
 import java.util.UUID
 
@@ -17,13 +16,10 @@ data class GroupMapUiState(
 /**
  * A single area of a Venn diagram, e.g. "in A and B but not C".
  *
- * [center] is where the region's names are written and [clearance] is the radius of the largest
- * circle that fits inside the region around that point — how much room the names have. Both are
- * normalized to the 0..1 drawing square.
+ * [box] is the space its names are written into, in the same normalized coordinates as the circles.
  */
 data class VennRegion(
     val label: String,
     val memberIds: List<UUID>,
-    val center: Offset,
-    val clearance: Float,
+    val box: RegionBox,
 )

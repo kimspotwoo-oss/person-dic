@@ -1,10 +1,14 @@
 package com.persondic.ui.persondetail
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.stickyHeader
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -47,7 +51,7 @@ import com.persondic.ui.common.deleteStoredPhoto
 import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
 @Composable
 fun PersonDetailScreen(
     personId: UUID,
@@ -101,66 +105,76 @@ fun PersonDetailScreen(
             }
         },
     ) { innerPadding ->
-        Column(
+        // One list for the whole screen. With the header in a Column above a nested LazyColumn,
+        // the list only got the leftover height and its rows were cut off once the header grew.
+        LazyColumn(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize(),
+            contentPadding = PaddingValues(bottom = 88.dp),
         ) {
             person?.let { loaded ->
-                PersonHeader(
-                    person = loaded,
-                    tags = tags,
-                    allTags = allTags,
-                    attributes = attributes,
-                    onEditFixedInfo = { showFixedInfoDialog = true },
-                    onEditProfile = { showProfileDialog = true },
-                    onPhotoPicked = { picked ->
-                        deleteStoredPhoto(loaded.photoUri)
-                        viewModel.setPhoto(picked)
-                    },
-                    onPhotoCleared = {
-                        deleteStoredPhoto(loaded.photoUri)
-                        viewModel.setPhoto(null)
-                    },
-                    onAddTag = viewModel::addTag,
-                    onRemoveTag = viewModel::removeTag,
-                )
+                item(key = "header") {
+                    PersonHeader(
+                        person = loaded,
+                        tags = tags,
+                        allTags = allTags,
+                        attributes = attributes,
+                        onEditFixedInfo = { showFixedInfoDialog = true },
+                        onEditProfile = { showProfileDialog = true },
+                        onPhotoPicked = { picked ->
+                            deleteStoredPhoto(loaded.photoUri)
+                            viewModel.setPhoto(picked)
+                        },
+                        onPhotoCleared = {
+                            deleteStoredPhoto(loaded.photoUri)
+                            viewModel.setPhoto(null)
+                        },
+                        onAddTag = viewModel::addTag,
+                        onRemoveTag = viewModel::removeTag,
+                    )
+                }
             }
 
-            Button(
-                onClick = { onBriefingClick(personId) },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 8.dp),
-            ) {
-                Text(stringResource(R.string.person_detail_view_briefing))
+            item(key = "briefing") {
+                Button(
+                    onClick = { onBriefingClick(personId) },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 8.dp),
+                ) {
+                    Text(stringResource(R.string.person_detail_view_briefing))
+                }
             }
 
-            TabRow(selectedTabIndex = selectedTab) {
-                Tab(
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    text = { Text(stringResource(R.string.person_detail_tab_facts)) },
-                )
-                Tab(
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    text = { Text(stringResource(R.string.person_detail_tab_interactions)) },
-                )
-                Tab(
-                    selected = selectedTab == 2,
-                    onClick = { selectedTab = 2 },
-                    text = { Text(stringResource(R.string.person_detail_tab_commitments)) },
-                )
+            // Sticky so the tabs stay reachable after scrolling into a long list.
+            stickyHeader(key = "tabs") {
+                TabRow(selectedTabIndex = selectedTab) {
+                    Tab(
+                        selected = selectedTab == 0,
+                        onClick = { selectedTab = 0 },
+                        text = { Text(stringResource(R.string.person_detail_tab_facts)) },
+                    )
+                    Tab(
+                        selected = selectedTab == 1,
+                        onClick = { selectedTab = 1 },
+                        text = { Text(stringResource(R.string.person_detail_tab_interactions)) },
+                    )
+                    Tab(
+                        selected = selectedTab == 2,
+                        onClick = { selectedTab = 2 },
+                        text = { Text(stringResource(R.string.person_detail_tab_commitments)) },
+                    )
+                }
             }
 
             when (selectedTab) {
-                0 -> FactsTab(groups = factGroups, onLongPress = { actionMenuFact = it })
-                1 -> InteractionsTab(
+                0 -> factItems(groups = factGroups, onLongPress = { actionMenuFact = it })
+                1 -> interactionItems(
                     interactions = interactions,
                     onOpen = { onOpenInteraction(personId, it.id) },
                 )
-                else -> CommitmentsTab(
+                else -> commitmentItems(
                     commitments = commitments,
                     onLongPress = { actionMenuCommitment = it },
                 )
