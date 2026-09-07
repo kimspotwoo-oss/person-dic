@@ -48,6 +48,7 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
                 onBriefingClick = { navController.navigate(Routes.briefing(it)) },
                 onAddFact = { navController.navigate(Routes.addFact(it)) },
                 onEditFact = { pid, factId -> navController.navigate(Routes.editFact(pid, factId)) },
+                onOpenInteraction = { pid, id -> navController.navigate(Routes.interactionDetail(pid, id)) },
             )
         }
         composable(
@@ -83,12 +84,21 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
         }
         composable(
             route = Routes.INTERACTION_LOG,
-            arguments = listOf(navArgument("personId") { type = NavType.StringType }),
+            arguments = listOf(
+                navArgument("personId") { type = NavType.StringType },
+                navArgument("interactionId") {
+                    type = NavType.StringType
+                    nullable = true
+                    defaultValue = null
+                },
+            ),
         ) { backStackEntry ->
             val personId = UUID.fromString(backStackEntry.arguments?.getString("personId"))
+            val interactionId = backStackEntry.arguments?.getString("interactionId")?.let(UUID::fromString)
             InteractionLogScreen(
                 personId = personId,
                 onDone = { navController.popBackStack() },
+                interactionId = interactionId,
             )
         }
     }

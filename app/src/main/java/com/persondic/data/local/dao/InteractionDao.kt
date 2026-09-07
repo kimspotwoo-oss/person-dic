@@ -46,6 +46,9 @@ interface InteractionDao {
     )
     suspend fun lastInteractionAt(personId: UUID): Instant?
 
+    @Query("SELECT * FROM interaction WHERE id = :id")
+    fun observeById(id: UUID): Flow<Interaction?>
+
     @Query("SELECT * FROM interaction")
     suspend fun getAllInteractions(): List<Interaction>
 

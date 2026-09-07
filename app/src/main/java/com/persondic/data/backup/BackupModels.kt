@@ -71,6 +71,7 @@ data class BackupInteraction(
     val metAt: String,
     val place: String? = null,
     val summary: String? = null,
+    val notes: String? = null,
     val kind: String,
 )
 

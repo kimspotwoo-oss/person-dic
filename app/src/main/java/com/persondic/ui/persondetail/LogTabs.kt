@@ -1,6 +1,7 @@
 package com.persondic.ui.persondetail
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -15,6 +16,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Commitment
@@ -27,7 +29,7 @@ import java.time.LocalDate
 import java.time.ZoneId
 
 @Composable
-fun InteractionsTab(interactions: List<Interaction>) {
+fun InteractionsTab(interactions: List<Interaction>, onOpen: (Interaction) -> Unit) {
     if (interactions.isEmpty()) {
         Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text(stringResource(R.string.person_detail_interactions_empty))
@@ -39,12 +41,21 @@ fun InteractionsTab(interactions: List<Interaction>) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .clickable { onOpen(interaction) }
                     .padding(horizontal = 16.dp, vertical = 10.dp),
             ) {
                 Text(
                     text = interaction.summary?.takeIf { it.isNotBlank() } ?: interactionKindLabel(interaction.kind),
                     style = MaterialTheme.typography.bodyLarge,
                 )
+                interaction.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+                    Text(
+                        text = notes,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
                 val meta = listOfNotNull(interaction.place, formatDate(interaction.metAt)).joinToString(" · ")
                 if (meta.isNotEmpty()) {
                     Text(

@@ -7,7 +7,7 @@ object Routes {
     const val PERSON_DETAIL = "personDetail/{personId}"
     const val FACT_EDIT = "factEdit/{personId}?factId={factId}"
     const val BRIEFING = "briefing/{personId}"
-    const val INTERACTION_LOG = "interactionLog/{personId}"
+    const val INTERACTION_LOG = "interactionLog/{personId}?interactionId={interactionId}"
     const val GROUP_MAP = "groupMap"
     const val QUICK_ADD = "quickAdd"
     const val BACKUP = "backup"
@@ -21,4 +21,7 @@ object Routes {
     fun briefing(personId: UUID): String = "briefing/$personId"
 
     fun interactionLog(personId: UUID): String = "interactionLog/$personId"
+
+    fun interactionDetail(personId: UUID, interactionId: UUID): String =
+        "interactionLog/$personId?interactionId=$interactionId"
 }

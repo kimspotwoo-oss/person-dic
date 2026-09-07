@@ -91,10 +91,13 @@ expiresOn: LocalDate?          // volatility로부터 자동 계산, 수정 가�
 confidence: Float              // 0.0~1.0, 수동 입력은 1.0
 sensitivity: Sensitivity
 pinned: Boolean                // 브리핑 최상단 고정
-sourceId: UUID?                // Phase 0에서는 항상 null
+sourceId: UUID?                // 이 사실이 나온 Interaction (Phase 0.5부터 채움)
 supersededBy: UUID?            // 이 사실을 대체한 새 fact (모순 처리용)
 createdAt / updatedAt: Instant
 ```
+
+`sourceId`는 만남 기록 화면에서 그 자리에 추가한 사실에 채워진다. 덕분에 만남을 다시 열면
+"이 만남에서 남긴 사실"을 함께 볼 수 있다. 다른 경로로 추가한 사실은 여전히 null이다.
 
 **enum FactCategory**
 - `CONTEXT` — 관계, 소속, 직함, 알게 된 계기
@@ -119,9 +122,14 @@ createdAt / updatedAt: Instant
 id: UUID (PK)
 metAt: Instant
 place: String?
-summary: String?
+summary: String?               // 한 줄 요약. 목록과 브리핑에 쓰인다
+notes: String?                 // 대화 내용 본문 — Phase 0.5 추가
 kind: InteractionKind          // MEET, CALL, MESSAGE, OTHER
 ```
+
+`summary`와 `notes`를 나눠 둔 이유: 목록·브리핑에는 한 줄이 필요하고, 나중에 다시 읽고
+싶은 건 본문이다. 둘 다 사용자가 직접 쓴다 — 자동 요약은 기기 밖 모델이 필요해서
+Phase 0 범위(네트워크 없음)를 벗어난다.
 
 ### 4.4 Attendance (Person ↔ Interaction 다대다)
 
@@ -252,6 +260,14 @@ sortOrder: Int
 - "이번에 알게 된 것" — 사실을 즉석에서 추가할 수 있는 인라인 입력
 - 저장 시 Interaction + Attendance + 신규 Fact 한 번에 커밋
 
+**만남 다시 보기** (같은 화면, 기존 기록을 열었을 때)
+
+- S2의 만남 기록 탭에서 행을 탭하면 그 만남이 열린다.
+- 날짜·장소·요약·대화 내용을 모두 고칠 수 있고, `sourceId`로 이어진
+  "이 만남에서 남긴 사실"이 함께 보인다.
+- 화면이 열려 있는 동안 DB가 바뀌어도 입력란을 덮어쓰지 않는다 — 타이핑 중인 내용이
+  사라지면 안 되므로 최초 1회만 채운다.
+
 ### S5. 사실 추가/수정
 
 - body 텍스트 (멀티라인)
@@ -362,6 +378,7 @@ AI 코딩 도구에 한 번에 하나씩 넘긴다. 각 작업은 독립적으�
 | G6 | S7 양식 텍스트 빠른 추가 | 예시 양식을 붙여넣으면 2명 + 사실·약속이 생성됨 |
 | G7 | 벤 다이어그램 영역 안 이름 표시 | 라벨이 자기 영역 안에 들어가고 넘치면 "외 N명" |
 | G8 | 고정 정보 (4.9) | 생일 D-day가 맞고, 음력은 D-day를 안 매기며, 백업에 함께 실림 |
+| G9 | 대화 내용 저장 + 다시 보기 | 만남을 다시 열면 본문과 그때 남긴 사실이 보임 |
 
 T8까지가 최소 사용 가능 지점. T9~T12는 실제로 써보면서 붙인다.
 G1~G6은 Phase 0.5 — 써보고 나서 필요해진 것들이다.
@@ -419,5 +436,6 @@ Kotlin 문법은 따로 공부하지 않는다 — 코드랩을 하면서 같이
 - **Phase 2**: 만난 직후 2분 회고 (본인 음성만, STT).
 - **Phase 3**: 대면 대화 녹음 → 온디바이스 전사 → 화자 분리 → 검토 → 오디오 파기.
 
-Phase 3 대비 메모: `Fact.sourceId`, `Fact.confidence`, `Fact.supersededBy`는 Phase 0에서 쓰이지 않지만
-스키마에 미리 넣어둔다. 나중에 마이그레이션하는 것보다 싸다.
+Phase 3 대비 메모: `Fact.confidence`와 `Fact.supersededBy`는 아직 쓰이지 않지만 스키마에
+미리 넣어둔다. 나중에 마이그레이션하는 것보다 싸다. (`Fact.sourceId`는 Phase 0.5부터
+만남 기록에서 실제로 쓰인다 — 4.2 참조.)

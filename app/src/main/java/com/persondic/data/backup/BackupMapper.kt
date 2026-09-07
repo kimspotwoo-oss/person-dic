@@ -65,6 +65,7 @@ fun Interaction.toBackup(): BackupInteraction = BackupInteraction(
     metAt = metAt.toString(),
     place = place,
     summary = summary,
+    notes = notes,
     kind = kind.name,
 )
 
@@ -151,6 +152,7 @@ fun BackupInteraction.toEntity(): Interaction? {
         metAt = metAt.toInstantOrNow(),
         place = place,
         summary = summary,
+        notes = notes,
         kind = kind.toEnumOrDefault(InteractionKind.OTHER),
     )
 }

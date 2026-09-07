@@ -92,6 +92,7 @@ class BackupManagerTest {
                 metAt = Instant.parse("2026-04-05T13:14:15Z"),
                 place = "학교 앞 카페",
                 summary = "이직 얘기",
+                notes = "회사 얘기 한참 하다가\n등산 얘기로 넘어감",
                 kind = InteractionKind.MESSAGE,
             ),
         ),

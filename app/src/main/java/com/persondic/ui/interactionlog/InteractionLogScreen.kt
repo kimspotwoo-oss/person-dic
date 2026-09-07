@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -19,6 +20,7 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -46,10 +48,13 @@ fun InteractionLogScreen(
     personId: UUID,
     onDone: () -> Unit,
     modifier: Modifier = Modifier,
+    interactionId: UUID? = null,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
     val viewModel: InteractionLogViewModel = viewModel(
-        factory = ViewModelFactory { InteractionLogViewModel(application.repository, personId) },
+        factory = ViewModelFactory {
+            InteractionLogViewModel(application.repository, personId, interactionId)
+        },
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
@@ -57,7 +62,17 @@ fun InteractionLogScreen(
         modifier = modifier,
         topBar = {
             TopAppBar(
-                title = { Text(stringResource(R.string.interaction_log_title)) },
+                title = {
+                    Text(
+                        stringResource(
+                            if (uiState.isExisting) {
+                                R.string.interaction_detail_title
+                            } else {
+                                R.string.interaction_log_title
+                            },
+                        ),
+                    )
+                },
                 navigationIcon = {
                     IconButton(onClick = onDone) {
                         Icon(Icons.Default.ArrowBack, contentDescription = stringResource(R.string.action_back))
@@ -98,6 +113,29 @@ fun InteractionLogScreen(
                 singleLine = true,
                 modifier = Modifier.fillMaxWidth(),
             )
+
+            Spacer(modifier = Modifier.height(16.dp))
+            OutlinedTextField(
+                value = uiState.notes,
+                onValueChange = viewModel::onNotesChange,
+                label = { Text(stringResource(R.string.interaction_field_notes)) },
+                placeholder = { Text(stringResource(R.string.interaction_field_notes_hint)) },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .heightIn(min = 140.dp),
+            )
+
+            if (uiState.factsFromThisMeeting.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(24.dp))
+                SectionLabel(stringResource(R.string.interaction_facts_from_here))
+                uiState.factsFromThisMeeting.forEach { fact ->
+                    Text(
+                        text = "· ${fact.body}",
+                        style = MaterialTheme.typography.bodyMedium,
+                        modifier = Modifier.padding(vertical = 2.dp),
+                    )
+                }
+            }
 
             Spacer(modifier = Modifier.height(24.dp))
             SectionLabel(stringResource(R.string.interaction_field_new_facts))

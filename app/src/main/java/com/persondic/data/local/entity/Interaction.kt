@@ -12,5 +12,10 @@ data class Interaction(
     val metAt: Instant,
     val place: String? = null,
     val summary: String? = null,
+    /**
+     * What was actually said, as the user chose to write it down. [summary] stays the one-line
+     * version for lists and the briefing; this is the part you come back to re-read.
+     */
+    val notes: String? = null,
     val kind: InteractionKind,
 )

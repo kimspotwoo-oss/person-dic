@@ -92,6 +92,10 @@
     <string name="interaction_field_datetime">날짜/시간</string>
     <string name="interaction_field_place">장소</string>
     <string name="interaction_field_summary">한 줄 요약</string>
+    <string name="interaction_detail_title">만남 다시 보기</string>
+    <string name="interaction_field_notes">대화 내용</string>
+    <string name="interaction_field_notes_hint">무슨 얘기를 했는지 적어두세요. 요약은 위 한 줄에.</string>
+    <string name="interaction_facts_from_here">이 만남에서 남긴 사실</string>
     <string name="interaction_field_new_facts">이번에 알게 된 것</string>
     <string name="interaction_new_fact_hint">새로운 사실 입력</string>
 

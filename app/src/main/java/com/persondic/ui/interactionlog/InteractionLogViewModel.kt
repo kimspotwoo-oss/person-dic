@@ -22,10 +22,49 @@ import java.util.UUID
 class InteractionLogViewModel(
     private val repository: PersonDicRepository,
     private val personId: UUID,
+    private val interactionId: UUID? = null,
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(InteractionLogUiState(dateTime = LocalDateTime.now()))
     val uiState: StateFlow<InteractionLogUiState> = _uiState.asStateFlow()
+
+    /** Only set when an existing meeting is open; used to keep its id and creation on save. */
+    private var loaded: Interaction? = null
+
+    init {
+        if (interactionId != null) {
+            viewModelScope.launch {
+                repository.observeInteraction(interactionId).collect { interaction ->
+                    if (interaction == null) return@collect
+                    loaded = interaction
+                    _uiState.update { state ->
+                        // Only fill the fields the first time: re-emitting on every database
+                        // change would wipe out whatever the user is in the middle of typing.
+                        if (state.isExisting) {
+                            state
+                        } else {
+                            state.copy(
+                                dateTime = LocalDateTime.ofInstant(interaction.metAt, ZoneId.systemDefault()),
+                                place = interaction.place.orEmpty(),
+                                summary = interaction.summary.orEmpty(),
+                                notes = interaction.notes.orEmpty(),
+                                isExisting = true,
+                            )
+                        }
+                    }
+                }
+            }
+            viewModelScope.launch {
+                repository.observeFactsFromInteraction(interactionId).collect { facts ->
+                    _uiState.update { it.copy(factsFromThisMeeting = facts) }
+                }
+            }
+        }
+    }
+
+    fun onNotesChange(notes: String) {
+        _uiState.update { it.copy(notes = notes) }
+    }
 
     fun onDateTimeChange(dateTime: LocalDateTime) {
         _uiState.update { it.copy(dateTime = dateTime) }
@@ -56,14 +95,21 @@ class InteractionLogViewModel(
     fun save(onSaved: () -> Unit) {
         val state = _uiState.value
         val factBodies = (state.newFactDrafts + state.newFactBody.trim()).filter { it.isNotBlank() }
+        val existing = loaded
         viewModelScope.launch {
             val interaction = Interaction(
+                id = existing?.id ?: UUID.randomUUID(),
                 metAt = state.dateTime.atZone(ZoneId.systemDefault()).toInstant(),
                 place = state.place.trim().takeIf { it.isNotEmpty() },
                 summary = state.summary.trim().takeIf { it.isNotEmpty() },
-                kind = InteractionKind.MEET,
+                notes = state.notes.trim().takeIf { it.isNotEmpty() },
+                kind = existing?.kind ?: InteractionKind.MEET,
             )
-            repository.recordInteraction(interaction, personId)
+            if (existing == null) {
+                repository.recordInteraction(interaction, personId)
+            } else {
+                repository.updateInteraction(interaction)
+            }
 
             val today = LocalDate.now()
             factBodies.forEach { body ->
@@ -75,6 +121,9 @@ class InteractionLogViewModel(
                         volatility = Volatility.SEASONAL,
                         assertedOn = today,
                         sensitivity = Sensitivity.NORMAL,
+                        // Links the fact back to the conversation it came out of, so the meeting
+                        // can show what was learned there.
+                        sourceId = interaction.id,
                     ),
                 )
             }

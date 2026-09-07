@@ -28,6 +28,9 @@ interface FactDao {
     @Query("SELECT * FROM fact WHERE personId = :personId ORDER BY createdAt DESC")
     fun observeForPerson(personId: UUID): Flow<List<Fact>>
 
+    @Query("SELECT * FROM fact WHERE sourceId = :sourceId ORDER BY createdAt ASC")
+    fun observeFromSource(sourceId: UUID): Flow<List<Fact>>
+
     @Query("SELECT DISTINCT personId FROM fact WHERE body LIKE '%' || :query || '%'")
     suspend fun findPersonIdsMatchingBody(query: String): List<UUID>
 

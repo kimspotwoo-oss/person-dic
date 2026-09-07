@@ -139,6 +139,14 @@ class PersonDicRepository(
 
     fun observeInteractions(personId: UUID): Flow<List<Interaction>> = interactionDao.observeForPerson(personId)
 
+    fun observeInteraction(id: UUID): Flow<Interaction?> = interactionDao.observeById(id)
+
+    /** The facts that were written down during one meeting, linked through Fact.sourceId. */
+    fun observeFactsFromInteraction(interactionId: UUID): Flow<List<Fact>> =
+        factDao.observeFromSource(interactionId)
+
+    suspend fun updateInteraction(interaction: Interaction) = interactionDao.update(interaction)
+
     suspend fun recordInteraction(interaction: Interaction, personId: UUID) {
         interactionDao.insert(interaction)
         interactionDao.insertAttendance(Attendance(interactionId = interaction.id, personId = personId))

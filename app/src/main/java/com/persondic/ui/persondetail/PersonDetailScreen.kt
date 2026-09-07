@@ -54,6 +54,7 @@ fun PersonDetailScreen(
     onBriefingClick: (UUID) -> Unit,
     onAddFact: (UUID) -> Unit,
     onEditFact: (UUID, UUID) -> Unit,
+    onOpenInteraction: (UUID, UUID) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val application = LocalContext.current.requirePersonDicApplication()
@@ -152,7 +153,10 @@ fun PersonDetailScreen(
 
             when (selectedTab) {
                 0 -> FactsTab(groups = factGroups, onLongPress = { actionMenuFact = it })
-                1 -> InteractionsTab(interactions = interactions)
+                1 -> InteractionsTab(
+                    interactions = interactions,
+                    onOpen = { onOpenInteraction(personId, it.id) },
+                )
                 else -> CommitmentsTab(
                     commitments = commitments,
                     onLongPress = { actionMenuCommitment = it },

@@ -6,6 +6,7 @@ import com.persondic.data.backup.BackupManager
 import com.persondic.data.local.AppDatabase
 import com.persondic.data.local.MIGRATION_1_2
 import com.persondic.data.local.MIGRATION_2_3
+import com.persondic.data.local.MIGRATION_3_4
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.ui.common.photosDir
 
@@ -13,7 +14,7 @@ class PersonDicApplication : Application() {
 
     val database: AppDatabase by lazy {
         Room.databaseBuilder(this, AppDatabase::class.java, "persondic.db")
-            .addMigrations(MIGRATION_1_2, MIGRATION_2_3)
+            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
             .build()
     }
 
