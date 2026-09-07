@@ -20,6 +20,29 @@
     <string name="photo_change">사진 변경</string>
     <string name="photo_remove">사진 삭제</string>
 
+    <string name="fixed_info_label">고정 정보</string>
+    <string name="fixed_info_edit">고정 정보 수정</string>
+    <string name="fixed_info_add_attribute">항목 추가</string>
+    <string name="fixed_info_attribute_label">항목 이름 (예: 혈액형)</string>
+    <string name="fixed_info_attribute_value">내용</string>
+    <string name="fixed_info_remove">항목 삭제</string>
+    <string name="fixed_info_hint">생일처럼 변하지 않는 정보입니다. 만료되지 않고 "확인 필요"에도 뜨지 않습니다.</string>
+
+    <string name="birthday_label">생일</string>
+    <string name="birthday_set">생일 설정</string>
+    <string name="birthday_clear">생일 지우기</string>
+    <string name="birthday_no_year_toggle">연도 모름</string>
+    <string name="birthday_lunar_toggle">음력</string>
+    <string name="birthday_lunar_note">음력은 양력 변환표가 없어 남은 날짜를 계산하지 않습니다.</string>
+    <string name="birthday_with_year">%1$d년 %2$d월 %3$d일</string>
+    <string name="birthday_no_year">%1$d월 %2$d일</string>
+    <string name="birthday_lunar_with_year">%1$d년 음력 %2$d월 %3$d일</string>
+    <string name="birthday_lunar">음력 %1$d월 %2$d일</string>
+    <string name="birthday_today">오늘</string>
+    <string name="birthday_today_with_age">오늘 %1$d세</string>
+    <string name="birthday_in_days">%1$d일 뒤</string>
+    <string name="birthday_in_days_with_age">%1$d일 뒤 %2$d세</string>
+
     <string name="group_tags_label">그룹 (해시태그)</string>
     <string name="group_tag_add_hint">새 그룹 입력</string>
     <string name="group_tag_suggestions">기존 그룹에서 선택</string>
@@ -105,5 +128,5 @@
     <string name="quick_add_preview_alias">별명: %1$s</string>
     <string name="quick_add_preview_story">계기: %1$s</string>
     <string name="quick_add_save">%1$d명 저장</string>
-    <string name="quick_add_format_example">김민준 @대학동창 @등산\n별명: 민준이\n계기: 동아리에서 처음 만남\n- 갑각류 알레르기 *영구 *주의\n- 아들 고3 *계절\n- 등산 코스 추천받기 *화제\n? 이직 결과 물어보기\n! 책 빌려주기\n---\n이서연 @회사\n- 커피보다 차 *취향\n\n@그룹 : 해시태그 (#도 됨)\n- : 사실   ? : 확인할 것   ! : 내가 할 것\n--- : 다음 사람\n*표시 : 관계 계기 취향 생활 화제 / 영구 천천히 계절 일회 / 비공개 민감 / 주의\n표시가 없으면 생활 · 계절로 저장됩니다.</string>
+    <string name="quick_add_format_example">김민준 @대학동창 @등산\n별명: 민준이\n계기: 동아리에서 처음 만남\n생일: 1990-03-15\n+혈액형: A\n- 갑각류 알레르기 *영구 *주의\n- 아들 고3 *계절\n- 등산 코스 추천받기 *화제\n? 이직 결과 물어보기\n! 책 빌려주기\n---\n이서연 @회사\n- 커피보다 차 *취향\n\n@그룹 : 해시태그 (#도 됨)\n- : 사실   ? : 확인할 것   ! : 내가 할 것\n생일: / +항목: 내용 → 고정 정보 (만료 없음)\n--- : 다음 사람\n*표시 : 관계 계기 취향 생활 화제 / 영구 천천히 계절 일회 / 비공개 민감 / 주의\n표시가 없으면 생활 · 계절로 저장됩니다.</string>
 </resources>

@@ -3,6 +3,8 @@ package com.persondic.ui.briefing
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
+import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.model.Direction
 import com.persondic.ui.common.FactCategoryGroup
 
@@ -13,6 +15,9 @@ data class CommitmentDirectionGroup(
 
 data class BriefingUiState(
     val personName: String = "",
+    /** Fixed information sits above the seven sections: it is identity, not news. */
+    val person: Person? = null,
+    val attributes: List<PersonAttribute> = emptyList(),
     val cautionFacts: List<Fact> = emptyList(),
     val openCommitmentGroups: List<CommitmentDirectionGroup> = emptyList(),
     val hookFacts: List<Fact> = emptyList(),

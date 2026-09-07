@@ -1,5 +1,6 @@
 package com.persondic.domain
 
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
@@ -8,6 +9,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.LocalDate
 
 class QuickAddParserTest {
 
@@ -188,5 +190,101 @@ class QuickAddParserTest {
 
         assertTrue(fact.body.isNotEmpty())
         assertEquals(Volatility.PERMANENT, fact.volatility)
+    }
+
+    @Test
+    fun parsesAFullBirthday() {
+        val person = parseQuickAdd(
+            """
+            김민준
+            생일: 1990-03-15
+            """.trimIndent(),
+        ).people.single()
+
+        val birthday = requireNotNull(person.birthday)
+        assertEquals(LocalDate.parse("1990-03-15"), birthday.date)
+        assertEquals(true, birthday.hasYear)
+        assertEquals(false, birthday.isLunar)
+    }
+
+    @Test
+    fun acceptsDotsAndSlashesAsDateSeparators() {
+        val dotted = parseQuickAdd("김민준\n생일: 1990.3.15").people.single().birthday
+        val slashed = parseQuickAdd("김민준\n생일: 1990/3/15").people.single().birthday
+
+        assertEquals(LocalDate.parse("1990-03-15"), requireNotNull(dotted).date)
+        assertEquals(LocalDate.parse("1990-03-15"), requireNotNull(slashed).date)
+    }
+
+    @Test
+    fun aBirthdayWithoutAYearUsesTheStandInYear() {
+        val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 3-15").people.single().birthday)
+
+        assertEquals(false, birthday.hasYear)
+        assertEquals(BIRTHDAY_YEAR_UNKNOWN, birthday.date.year)
+        assertEquals(3, birthday.date.monthValue)
+        assertEquals(15, birthday.date.dayOfMonth)
+    }
+
+    @Test
+    fun recognisesALunarBirthday() {
+        val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 음력 3-15").people.single().birthday)
+
+        assertTrue(birthday.isLunar)
+        assertEquals(false, birthday.hasYear)
+    }
+
+    @Test
+    fun aFebruaryTwentyNinthBirthdayWithoutAYearIsAccepted() {
+        val birthday = requireNotNull(parseQuickAdd("김민준\n생일: 2-29").people.single().birthday)
+
+        assertEquals(2, birthday.date.monthValue)
+        assertEquals(29, birthday.date.dayOfMonth)
+    }
+
+    @Test
+    fun anImpossibleDateIsWarnedAboutNotStored() {
+        val result = parseQuickAdd("김민준\n생일: 1990-13-45")
+
+        assertNull(result.people.single().birthday)
+        assertEquals(1, result.warnings.size)
+    }
+
+    @Test
+    fun parsesFixedAttributes() {
+        val person = parseQuickAdd(
+            """
+            김민준
+            +혈액형: A
+            +MBTI: INFP
+            """.trimIndent(),
+        ).people.single()
+
+        assertEquals(2, person.attributes.size)
+        assertEquals(ParsedAttribute("혈액형", "A"), person.attributes[0])
+        assertEquals(ParsedAttribute("MBTI", "INFP"), person.attributes[1])
+    }
+
+    @Test
+    fun anAttributeWithoutAValueIsWarnedAboutNotDropped() {
+        val result = parseQuickAdd("김민준\n+혈액형")
+
+        assertTrue(result.people.single().attributes.isEmpty())
+        assertEquals(1, result.warnings.size)
+    }
+
+    @Test
+    fun aRepeatedAttributeLabelKeepsTheFirstOne() {
+        val person = parseQuickAdd("김민준\n+혈액형: A\n+혈액형: B").people.single()
+
+        assertEquals(1, person.attributes.size)
+        assertEquals("A", person.attributes.single().value)
+    }
+
+    @Test
+    fun attributeValuesMayContainColons() {
+        val person = parseQuickAdd("김민준\n+메모: 회의 시간: 3시").people.single()
+
+        assertEquals("회의 시간: 3시", person.attributes.single().value)
     }
 }

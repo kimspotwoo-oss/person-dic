@@ -85,6 +85,7 @@ class BackupManager(
                 commitments = snapshot.commitments.map { it.toBackup() },
                 groupTags = snapshot.groupTags.map { it.toBackup() },
                 ties = snapshot.ties.map { it.toBackup() },
+                attributes = snapshot.attributes.map { it.toBackup() },
             )
 
             zip.putNextEntry(ZipEntry(BACKUP_JSON_NAME))
@@ -155,6 +156,7 @@ class BackupManager(
                 commitments = parsed.commitments.mapKept { it.toEntity() },
                 groupTags = parsed.groupTags.mapKept { it.toEntity() },
                 ties = parsed.ties.mapKept { it.toEntity() },
+                attributes = parsed.attributes.mapKept { it.toEntity() },
             )
 
             staging.deleteRecursively()

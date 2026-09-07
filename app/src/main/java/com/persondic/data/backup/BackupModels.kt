@@ -27,6 +27,7 @@ data class BackupFile(
     val commitments: List<BackupCommitment> = emptyList(),
     val groupTags: List<BackupGroupTag> = emptyList(),
     val ties: List<BackupTie> = emptyList(),
+    val attributes: List<BackupAttribute> = emptyList(),
 )
 
 @Serializable
@@ -39,6 +40,9 @@ data class BackupPerson(
     val metStory: String? = null,
     /** File name inside the archive's photos/ folder, not a device path. */
     val photo: String? = null,
+    val birthday: String? = null,
+    val birthdayHasYear: Boolean = true,
+    val birthdayIsLunar: Boolean = false,
     val createdAt: String? = null,
     val updatedAt: String? = null,
 )
@@ -99,4 +103,12 @@ data class BackupTie(
     val fromPersonId: String,
     val toPersonId: String,
     val label: String,
+)
+
+@Serializable
+data class BackupAttribute(
+    val personId: String,
+    val label: String,
+    val value: String,
+    val sortOrder: Int = 0,
 )

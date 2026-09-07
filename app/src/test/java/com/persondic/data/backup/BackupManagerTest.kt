@@ -1,10 +1,12 @@
 package com.persondic.data.backup
 
 import com.persondic.data.local.entity.Attendance
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.local.entity.Tie
 import com.persondic.data.model.CommitmentStatus
@@ -58,6 +60,9 @@ class BackupManagerTest {
                 metOn = LocalDate.parse("2019-03-02"),
                 metStory = "동아리에서 처음 만남",
                 photoUri = photoPath,
+                birthday = LocalDate.of(BIRTHDAY_YEAR_UNKNOWN, 2, 29),
+                birthdayHasYear = false,
+                birthdayIsLunar = true,
                 createdAt = Instant.parse("2026-01-01T01:02:03Z"),
                 updatedAt = Instant.parse("2026-02-02T04:05:06Z"),
             ),
@@ -106,6 +111,10 @@ class BackupManagerTest {
             PersonGroupTag(personId = personId, tag = "대학동창"),
             PersonGroupTag(personId = personId, tag = "등산"),
         ),
+        attributes = listOf(
+            PersonAttribute(personId = personId, label = "혈액형", value = "A", sortOrder = 1),
+            PersonAttribute(personId = personId, label = "MBTI", value = "INFP", sortOrder = 2),
+        ),
         ties = listOf(
             Tie(
                 id = UUID.fromString("88888888-8888-8888-8888-888888888888"),
@@ -134,6 +143,7 @@ class BackupManagerTest {
         assertEquals(original.commitments, result.snapshot.commitments)
         assertEquals(original.groupTags, result.snapshot.groupTags)
         assertEquals(original.ties, result.snapshot.ties)
+        assertEquals(original.attributes, result.snapshot.attributes)
     }
 
     @Test

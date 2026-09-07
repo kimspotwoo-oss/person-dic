@@ -3,6 +3,7 @@ package com.persondic.data.backup
 import com.persondic.data.local.entity.Attendance
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.local.entity.Tie
 import java.util.UUID
@@ -13,6 +14,7 @@ data class ImportMergePlan(
     val commitments: List<Commitment> = emptyList(),
     val groupTags: List<PersonGroupTag> = emptyList(),
     val ties: List<Tie> = emptyList(),
+    val attributes: List<PersonAttribute> = emptyList(),
     val attendances: List<Attendance> = emptyList(),
     val dropped: Int = 0,
 )
@@ -42,6 +44,7 @@ fun planImportMerge(
     val commitments = snapshot.commitments.keepingKnown { it.personId in knownPeople }
     val groupTags = snapshot.groupTags.keepingKnown { it.personId in knownPeople }
     val ties = snapshot.ties.keepingKnown { it.fromPersonId in knownPeople && it.toPersonId in knownPeople }
+    val attributes = snapshot.attributes.keepingKnown { it.personId in knownPeople }
     val attendances = snapshot.attendances.keepingKnown {
         it.personId in knownPeople && it.interactionId in knownInteractions
     }
@@ -51,6 +54,7 @@ fun planImportMerge(
         commitments = commitments,
         groupTags = groupTags,
         ties = ties,
+        attributes = attributes,
         attendances = attendances,
         dropped = dropped,
     )

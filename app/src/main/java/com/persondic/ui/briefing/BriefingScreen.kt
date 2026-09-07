@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.persondic.R
+import com.persondic.ui.common.FixedInfoBlock
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
@@ -72,6 +73,15 @@ fun BriefingScreen(
                 .fillMaxSize(),
             contentPadding = PaddingValues(bottom = 16.dp),
         ) {
+            uiState.person?.let { person ->
+                item(key = "fixed-info") {
+                    FixedInfoBlock(
+                        person = person,
+                        attributes = uiState.attributes,
+                        modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                    )
+                }
+            }
             if (uiState.cautionFacts.isNotEmpty()) {
                 item(key = "section-caution") { CautionSection(uiState.cautionFacts) }
             }

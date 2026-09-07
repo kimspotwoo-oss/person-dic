@@ -5,6 +5,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.local.entity.Tie
 
@@ -17,8 +18,10 @@ data class BackupSnapshot(
     val commitments: List<Commitment> = emptyList(),
     val groupTags: List<PersonGroupTag> = emptyList(),
     val ties: List<Tie> = emptyList(),
+    val attributes: List<PersonAttribute> = emptyList(),
 ) {
     val isEmpty: Boolean
         get() = people.isEmpty() && facts.isEmpty() && interactions.isEmpty() &&
-            attendances.isEmpty() && commitments.isEmpty() && groupTags.isEmpty() && ties.isEmpty()
+            attendances.isEmpty() && commitments.isEmpty() && groupTags.isEmpty() &&
+            ties.isEmpty() && attributes.isEmpty()
 }

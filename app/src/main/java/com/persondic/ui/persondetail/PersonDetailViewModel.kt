@@ -6,6 +6,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.model.CommitmentStatus
 import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
@@ -43,6 +44,12 @@ class PersonDetailViewModel(
     val allTags: StateFlow<List<String>> = repository.observeAllGroupTags()
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
+    val attributes: StateFlow<List<PersonAttribute>> = repository.observeAttributes(personId)
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
+    val allAttributeLabels: StateFlow<List<String>> = repository.observeAllAttributeLabels()
+        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+
     fun addTag(tag: String) {
         viewModelScope.launch { repository.addGroupTag(personId, tag) }
     }
@@ -54,6 +61,21 @@ class PersonDetailViewModel(
     fun setPhoto(photoUri: String?) {
         val current = person.value ?: return
         viewModelScope.launch { repository.setPersonPhoto(current, photoUri) }
+    }
+
+    fun setBirthday(birthday: LocalDate?, hasYear: Boolean, isLunar: Boolean) {
+        val current = person.value ?: return
+        viewModelScope.launch { repository.setBirthday(current, birthday, hasYear, isLunar) }
+    }
+
+    fun setAttribute(label: String, value: String) {
+        viewModelScope.launch {
+            repository.setAttribute(personId, label, value, sortOrder = attributes.value.size)
+        }
+    }
+
+    fun removeAttribute(label: String) {
+        viewModelScope.launch { repository.removeAttribute(personId, label) }
     }
 
     fun deleteFact(fact: Fact) {

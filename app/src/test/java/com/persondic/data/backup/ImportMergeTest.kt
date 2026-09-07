@@ -3,6 +3,7 @@ package com.persondic.data.backup
 import com.persondic.data.local.entity.Attendance
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.local.entity.Tie
 import com.persondic.data.model.Direction
@@ -116,6 +117,21 @@ class ImportMergeTest {
     }
 
     @Test
+    fun dropsAttributesForMissingPeople() {
+        val result = plan(
+            BackupSnapshot(
+                attributes = listOf(
+                    PersonAttribute(personId = known, label = "혈액형", value = "A"),
+                    PersonAttribute(personId = missing, label = "혈액형", value = "B"),
+                ),
+            ),
+        )
+
+        assertEquals(1, result.attributes.size)
+        assertEquals(1, result.dropped)
+    }
+
+    @Test
     fun countsEveryDroppedRowAcrossTables() {
         val result = plan(
             BackupSnapshot(
@@ -123,10 +139,11 @@ class ImportMergeTest {
                 commitments = listOf(Commitment(personId = missing, direction = Direction.I_OWE, body = "x")),
                 groupTags = listOf(PersonGroupTag(personId = missing, tag = "x")),
                 ties = listOf(Tie(fromPersonId = missing, toPersonId = missing, label = "x")),
+                attributes = listOf(PersonAttribute(personId = missing, label = "x", value = "y")),
                 attendances = listOf(Attendance(interactionId = missingInteraction, personId = missing)),
             ),
         )
 
-        assertEquals(5, result.dropped)
+        assertEquals(6, result.dropped)
     }
 }

@@ -1,12 +1,14 @@
 package com.persondic.ui.persondetail
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
@@ -24,6 +26,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -34,6 +37,8 @@ import com.persondic.R
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
+import com.persondic.ui.common.FixedInfoBlock
 import com.persondic.ui.common.GroupTagEditor
 import com.persondic.ui.common.PhotoPickerRow
 import com.persondic.ui.common.ViewModelFactory
@@ -61,11 +66,14 @@ fun PersonDetailScreen(
     val commitments by viewModel.commitments.collectAsStateWithLifecycle()
     val tags by viewModel.tags.collectAsStateWithLifecycle()
     val allTags by viewModel.allTags.collectAsStateWithLifecycle()
+    val attributes by viewModel.attributes.collectAsStateWithLifecycle()
+    val allAttributeLabels by viewModel.allAttributeLabels.collectAsStateWithLifecycle()
 
     var selectedTab by rememberSaveable { mutableStateOf(0) }
     var actionMenuFact by remember { mutableStateOf<Fact?>(null) }
     var showAddCommitmentDialog by rememberSaveable { mutableStateOf(false) }
     var actionMenuCommitment by remember { mutableStateOf<Commitment?>(null) }
+    var showFixedInfoDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -100,6 +108,8 @@ fun PersonDetailScreen(
                     person = loaded,
                     tags = tags,
                     allTags = allTags,
+                    attributes = attributes,
+                    onEditFixedInfo = { showFixedInfoDialog = true },
                     onPhotoPicked = { picked ->
                         deleteStoredPhoto(loaded.photoUri)
                         viewModel.setPhoto(picked)
@@ -148,6 +158,20 @@ fun PersonDetailScreen(
                     onLongPress = { actionMenuCommitment = it },
                 )
             }
+        }
+    }
+
+    if (showFixedInfoDialog) {
+        person?.let { loaded ->
+            FixedInfoDialog(
+                person = loaded,
+                attributes = attributes,
+                suggestedLabels = allAttributeLabels.filterNot { label -> attributes.any { it.label == label } },
+                onDismiss = { showFixedInfoDialog = false },
+                onSetBirthday = viewModel::setBirthday,
+                onSetAttribute = viewModel::setAttribute,
+                onRemoveAttribute = viewModel::removeAttribute,
+            )
         }
     }
 
@@ -201,6 +225,8 @@ private fun PersonHeader(
     person: Person,
     tags: List<String>,
     allTags: List<String>,
+    attributes: List<PersonAttribute>,
+    onEditFixedInfo: () -> Unit,
     onPhotoPicked: (String) -> Unit,
     onPhotoCleared: () -> Unit,
     onAddTag: (String) -> Unit,
@@ -232,6 +258,20 @@ private fun PersonHeader(
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                FixedInfoBlock(person = person, attributes = attributes)
+            }
+            IconButton(onClick = onEditFixedInfo) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.fixed_info_edit))
+            }
+        }
+
         GroupTagEditor(
             selectedTags = tags,
             allTags = allTags,

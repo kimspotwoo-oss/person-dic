@@ -170,6 +170,38 @@ private fun PersonPreview(person: ParsedPerson) {
                     style = MaterialTheme.typography.bodySmall,
                 )
             }
+            person.birthday?.let { birthday ->
+                val text = when {
+                    birthday.isLunar && birthday.hasYear ->
+                        stringResource(
+                            R.string.birthday_lunar_with_year,
+                            birthday.date.year,
+                            birthday.date.monthValue,
+                            birthday.date.dayOfMonth,
+                        )
+                    birthday.isLunar ->
+                        stringResource(R.string.birthday_lunar, birthday.date.monthValue, birthday.date.dayOfMonth)
+                    birthday.hasYear ->
+                        stringResource(
+                            R.string.birthday_with_year,
+                            birthday.date.year,
+                            birthday.date.monthValue,
+                            birthday.date.dayOfMonth,
+                        )
+                    else ->
+                        stringResource(R.string.birthday_no_year, birthday.date.monthValue, birthday.date.dayOfMonth)
+                }
+                Text(
+                    text = "${stringResource(R.string.birthday_label)}: $text",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
+            person.attributes.forEach { attribute ->
+                Text(
+                    text = "${attribute.label}: ${attribute.value}",
+                    style = MaterialTheme.typography.bodySmall,
+                )
+            }
 
             val cautionLabel = stringResource(R.string.briefing_section_caution)
             person.facts.forEach { fact ->

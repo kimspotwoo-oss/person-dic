@@ -51,9 +51,15 @@ class QuickAddViewModel(
                     displayName = parsed.displayName,
                     alias = parsed.alias,
                     metStory = parsed.metStory,
+                    birthday = parsed.birthday?.date,
+                    birthdayHasYear = parsed.birthday?.hasYear ?: true,
+                    birthdayIsLunar = parsed.birthday?.isLunar ?: false,
                 )
                 repository.addPerson(person)
                 parsed.tags.forEach { tag -> repository.addGroupTag(person.id, tag) }
+                parsed.attributes.forEachIndexed { index, attribute ->
+                    repository.setAttribute(person.id, attribute.label, attribute.value, sortOrder = index)
+                }
                 parsed.facts.forEach { fact ->
                     repository.addFact(
                         Fact(

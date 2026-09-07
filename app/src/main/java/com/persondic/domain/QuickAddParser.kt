@@ -3,7 +3,11 @@ package com.persondic.domain
 import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
+import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.model.Volatility
+import java.time.DateTimeException
+import java.time.LocalDate
+import java.time.MonthDay
 
 data class ParsedFact(
     val body: String,
@@ -11,6 +15,18 @@ data class ParsedFact(
     val volatility: Volatility,
     val sensitivity: Sensitivity,
     val pinned: Boolean,
+)
+
+/** A birthday as written in the text. [hasYear] is false when only a month and day were given. */
+data class ParsedBirthday(
+    val date: LocalDate,
+    val hasYear: Boolean,
+    val isLunar: Boolean,
+)
+
+data class ParsedAttribute(
+    val label: String,
+    val value: String,
 )
 
 data class ParsedCommitment(
@@ -23,6 +39,8 @@ data class ParsedPerson(
     val alias: String? = null,
     val metStory: String? = null,
     val tags: List<String> = emptyList(),
+    val birthday: ParsedBirthday? = null,
+    val attributes: List<ParsedAttribute> = emptyList(),
     val facts: List<ParsedFact> = emptyList(),
     val commitments: List<ParsedCommitment> = emptyList(),
 )
@@ -81,7 +99,9 @@ private fun parseBlock(block: String, warnings: MutableList<String>): ParsedPers
     var displayName: String? = null
     var alias: String? = null
     var metStory: String? = null
+    var birthday: ParsedBirthday? = null
     val tags = mutableListOf<String>()
+    val attributes = mutableListOf<ParsedAttribute>()
     val facts = mutableListOf<ParsedFact>()
     val commitments = mutableListOf<ParsedCommitment>()
 
@@ -111,6 +131,28 @@ private fun parseBlock(block: String, warnings: MutableList<String>): ParsedPers
                     warnings += "내용이 비어 있는 약속 줄을 건너뛰었습니다: \"$line\""
                 } else {
                     commitments += ParsedCommitment(body, Direction.I_OWE)
+                }
+            }
+
+            line.startsWith("생일:") -> {
+                val text = line.removePrefix("생일:").trim()
+                val parsed = parseBirthday(text)
+                if (parsed == null) {
+                    warnings += "생일 날짜를 읽지 못했습니다: \"$text\" (1990-03-15 또는 3-15 형식)"
+                } else {
+                    birthday = parsed
+                }
+            }
+
+            line.startsWith("+") -> {
+                val body = line.removePrefix("+").trim()
+                val separator = body.indexOf(':')
+                val label = if (separator >= 0) body.take(separator).trim() else ""
+                val value = if (separator >= 0) body.substring(separator + 1).trim() else ""
+                if (label.isEmpty() || value.isEmpty()) {
+                    warnings += "고정 정보는 \"+항목: 내용\" 형식이어야 합니다: \"$line\""
+                } else {
+                    attributes += ParsedAttribute(label, value)
                 }
             }
 
@@ -149,6 +191,8 @@ private fun parseBlock(block: String, warnings: MutableList<String>): ParsedPers
         alias = alias,
         metStory = metStory,
         tags = tags.distinct(),
+        birthday = birthday,
+        attributes = attributes.distinctBy { it.label },
         facts = facts,
         commitments = commitments,
     )
@@ -178,4 +222,35 @@ private fun parseFact(text: String): ParsedFact {
         sensitivity = sensitivity,
         pinned = pinned,
     )
+}
+
+/**
+ * Reads "1990-03-15", "1990.3.15", "3-15" and the 음력 prefix. A month and day with no year is
+ * normal — you often know the day without the year — and stores the stand-in year instead of
+ * being rejected.
+ */
+private fun parseBirthday(text: String): ParsedBirthday? {
+    val isLunar = text.startsWith("음력")
+    val digits = text.removePrefix("음력").trim().replace('.', '-').replace('/', '-').trim('-')
+    val parts = digits.split("-").map { it.trim() }.filter { it.isNotEmpty() }
+
+    return try {
+        when (parts.size) {
+            3 -> ParsedBirthday(
+                date = LocalDate.of(parts[0].toInt(), parts[1].toInt(), parts[2].toInt()),
+                hasYear = true,
+                isLunar = isLunar,
+            )
+            2 -> ParsedBirthday(
+                date = MonthDay.of(parts[0].toInt(), parts[1].toInt()).atYear(BIRTHDAY_YEAR_UNKNOWN),
+                hasYear = false,
+                isLunar = isLunar,
+            )
+            else -> null
+        }
+    } catch (e: NumberFormatException) {
+        null
+    } catch (e: DateTimeException) {
+        null
+    }
 }

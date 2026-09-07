@@ -8,6 +8,7 @@ import com.persondic.data.local.dao.CommitmentDao
 import com.persondic.data.local.dao.FactDao
 import com.persondic.data.local.dao.GroupTagDao
 import com.persondic.data.local.dao.InteractionDao
+import com.persondic.data.local.dao.PersonAttributeDao
 import com.persondic.data.local.dao.PersonDao
 import com.persondic.data.local.dao.TieDao
 import com.persondic.data.local.entity.Attendance
@@ -15,6 +16,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.model.CommitmentStatus
 import com.persondic.domain.DerivedValues
@@ -32,6 +34,7 @@ class PersonDicRepository(
     private val commitmentDao: CommitmentDao,
     private val groupTagDao: GroupTagDao,
     private val tieDao: TieDao,
+    private val personAttributeDao: PersonAttributeDao,
 ) {
 
     // Person
@@ -48,6 +51,40 @@ class PersonDicRepository(
 
     suspend fun setPersonPhoto(person: Person, photoUri: String?) {
         personDao.update(person.copy(photoUri = photoUri, updatedAt = Instant.now()))
+    }
+
+    // Fixed information
+
+    fun observeAttributes(personId: UUID): Flow<List<PersonAttribute>> =
+        personAttributeDao.observeForPerson(personId)
+
+    fun observeAllAttributeLabels(): Flow<List<String>> = personAttributeDao.observeAllLabels()
+
+    suspend fun setAttribute(personId: UUID, label: String, value: String, sortOrder: Int = 0) {
+        val trimmedLabel = label.trim()
+        val trimmedValue = value.trim()
+        if (trimmedLabel.isEmpty() || trimmedValue.isEmpty()) return
+        personAttributeDao.upsert(
+            PersonAttribute(
+                personId = personId,
+                label = trimmedLabel,
+                value = trimmedValue,
+                sortOrder = sortOrder,
+            ),
+        )
+    }
+
+    suspend fun removeAttribute(personId: UUID, label: String) = personAttributeDao.delete(personId, label)
+
+    suspend fun setBirthday(person: Person, birthday: LocalDate?, hasYear: Boolean, isLunar: Boolean) {
+        personDao.update(
+            person.copy(
+                birthday = birthday,
+                birthdayHasYear = hasYear,
+                birthdayIsLunar = isLunar,
+                updatedAt = Instant.now(),
+            ),
+        )
     }
 
     // Group tags
@@ -133,6 +170,7 @@ class PersonDicRepository(
         commitments = commitmentDao.getAll(),
         groupTags = groupTagDao.getAll(),
         ties = tieDao.getAll(),
+        attributes = personAttributeDao.getAll(),
     )
 
     /**
@@ -159,6 +197,7 @@ class PersonDicRepository(
         commitmentDao.upsertAll(plan.commitments)
         groupTagDao.upsertAll(plan.groupTags)
         tieDao.upsertAll(plan.ties)
+        personAttributeDao.upsertAll(plan.attributes)
         interactionDao.upsertAttendances(plan.attendances)
 
         plan.dropped

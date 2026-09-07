@@ -6,6 +6,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
@@ -31,8 +32,9 @@ class BriefingViewModel(
         repository.observeFacts(personId),
         repository.observeOpenCommitments(personId),
         repository.observeInteractions(personId),
-    ) { person, facts, openCommitments, interactions ->
-        buildUiState(person, facts, openCommitments, interactions)
+        repository.observeAttributes(personId),
+    ) { person, facts, openCommitments, interactions, attributes ->
+        buildUiState(person, facts, openCommitments, interactions, attributes)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), BriefingUiState())
 
     fun markStillValid(fact: Fact) {
@@ -48,6 +50,7 @@ class BriefingViewModel(
         facts: List<Fact>,
         openCommitments: List<Commitment>,
         interactions: List<Interaction>,
+        attributes: List<PersonAttribute>,
     ): BriefingUiState {
         // Sensitive facts (PRIVATE/RESTRICTED) are gated to the 민감 정보 section only - never
         // shown plainly elsewhere, even if pinned. See design principle 4 in SPEC.md 1.
@@ -81,6 +84,8 @@ class BriefingViewModel(
 
         return BriefingUiState(
             personName = person?.displayName.orEmpty(),
+            person = person,
+            attributes = attributes,
             cautionFacts = cautionFacts,
             openCommitmentGroups = openCommitmentGroups,
             hookFacts = hookFacts,

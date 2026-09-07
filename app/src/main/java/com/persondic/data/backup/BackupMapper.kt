@@ -5,6 +5,7 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
+import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.local.entity.Tie
 import com.persondic.data.model.CommitmentStatus
@@ -35,6 +36,9 @@ fun Person.toBackup(photoName: String?): BackupPerson = BackupPerson(
     metOn = metOn?.toString(),
     metStory = metStory,
     photo = photoName,
+    birthday = birthday?.toString(),
+    birthdayHasYear = birthdayHasYear,
+    birthdayIsLunar = birthdayIsLunar,
     createdAt = createdAt.toString(),
     updatedAt = updatedAt.toString(),
 )
@@ -84,6 +88,13 @@ fun PersonGroupTag.toBackup(): BackupGroupTag = BackupGroupTag(
     tag = tag,
 )
 
+fun PersonAttribute.toBackup(): BackupAttribute = BackupAttribute(
+    personId = personId.toString(),
+    label = label,
+    value = value,
+    sortOrder = sortOrder,
+)
+
 fun Tie.toBackup(): BackupTie = BackupTie(
     id = id.toString(),
     fromPersonId = fromPersonId.toString(),
@@ -104,6 +115,9 @@ fun BackupPerson.toEntity(photoPath: String?): Person? {
         metOn = metOn.toLocalDateOrNull(),
         metStory = metStory,
         photoUri = photoPath,
+        birthday = birthday.toLocalDateOrNull(),
+        birthdayHasYear = birthdayHasYear,
+        birthdayIsLunar = birthdayIsLunar,
         createdAt = createdAt.toInstantOrNow(),
         updatedAt = updatedAt.toInstantOrNow(),
     )
@@ -165,6 +179,17 @@ fun BackupGroupTag.toEntity(): PersonGroupTag? {
     val owner = personId.toUuidOrNull() ?: return null
     val normalized = tag.trim().ifEmpty { return null }
     return PersonGroupTag(personId = owner, tag = normalized)
+}
+
+fun BackupAttribute.toEntity(): PersonAttribute? {
+    val owner = personId.toUuidOrNull() ?: return null
+    val trimmedLabel = label.trim().ifEmpty { return null }
+    return PersonAttribute(
+        personId = owner,
+        label = trimmedLabel,
+        value = value,
+        sortOrder = sortOrder,
+    )
 }
 
 fun BackupTie.toEntity(): Tie? {
