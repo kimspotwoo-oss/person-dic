@@ -211,8 +211,8 @@ fun PersonDetailScreen(
             candidates = otherPeople,
             suggestedLabels = (allTieLabels + defaultTieLabels).distinct(),
             onDismiss = { showAddTieDialog = false },
-            onConfirm = { otherPersonId, label ->
-                viewModel.addTie(otherPersonId, label)
+            onConfirm = { otherPersonId, label, symmetric ->
+                viewModel.addTie(otherPersonId, label, symmetric)
                 showAddTieDialog = false
             },
         )

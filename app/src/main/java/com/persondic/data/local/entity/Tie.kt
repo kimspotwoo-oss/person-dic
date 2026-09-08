@@ -29,4 +29,12 @@ data class Tie(
     val fromPersonId: UUID,
     val toPersonId: UUID,
     val label: String,
+    /**
+     * True when the label reads the same from either end — 친구, 배우자, 형제자매.
+     *
+     * Stored rather than guessed from the label, because a label the user invents cannot be
+     * looked up in any list the app ships with. The graph draws a plain line for these and an
+     * arrow for the rest, and the arrow points at [toPersonId].
+     */
+    val symmetric: Boolean = false,
 )

@@ -41,6 +41,7 @@ fun Person.toBackup(photoName: String?): BackupPerson = BackupPerson(
     birthYear = birthYear,
     birthdayIsLunar = birthdayIsLunar,
     birthdayHasYear = birthYear != null,
+    isSelf = isSelf,
     createdAt = createdAt.toString(),
     updatedAt = updatedAt.toString(),
 )
@@ -104,6 +105,7 @@ fun Tie.toBackup(): BackupTie = BackupTie(
     fromPersonId = fromPersonId.toString(),
     toPersonId = toPersonId.toString(),
     label = label,
+    symmetric = symmetric,
 )
 
 // Import
@@ -123,6 +125,7 @@ fun BackupPerson.toEntity(photoPath: String?): Person? {
         birthYear = storedBirthYear(),
         birthdayIsLunar = birthdayIsLunar,
         birthdayHasYear = storedBirthYear() != null,
+        isSelf = isSelf,
         createdAt = createdAt.toInstantOrNow(),
         updatedAt = updatedAt.toInstantOrNow(),
     )
@@ -203,7 +206,7 @@ fun BackupTie.toEntity(): Tie? {
     val tieId = id.toUuidOrNull() ?: return null
     val from = fromPersonId.toUuidOrNull() ?: return null
     val to = toPersonId.toUuidOrNull() ?: return null
-    return Tie(id = tieId, fromPersonId = from, toPersonId = to, label = label)
+    return Tie(id = tieId, fromPersonId = from, toPersonId = to, label = label, symmetric = symmetric)
 }
 
 /**

@@ -70,15 +70,15 @@ class PersonDetailViewModel(
     /** Ties phrased from this person's side, so an asymmetric label still reads correctly. */
     val ties: StateFlow<List<TieView>> = combine(
         repository.observeTies(personId),
-        repository.observePeople(),
+        repository.observePeopleIncludingSelf(),
     ) { ties, people ->
         val names = people.associate { it.id to it.displayName }
         ties.mapNotNull { tie -> describeTie(tie, personId) { names[it] } }
             .sortedBy { it.text }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
-    /** Everyone else, for picking the other end of a tie. */
-    val otherPeople: StateFlow<List<Person>> = repository.observePeople()
+    /** Everyone else, for picking the other end of a tie. Includes me — I am a valid far end. */
+    val otherPeople: StateFlow<List<Person>> = repository.observePeopleIncludingSelf()
         .map { people -> people.filterNot { it.id == personId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
@@ -98,8 +98,8 @@ class PersonDetailViewModel(
         viewModelScope.launch { repository.setPersonPhoto(current, photoUri) }
     }
 
-    fun addTie(otherPersonId: UUID, label: String) {
-        viewModelScope.launch { repository.addTie(personId, otherPersonId, label) }
+    fun addTie(otherPersonId: UUID, label: String, symmetric: Boolean) {
+        viewModelScope.launch { repository.addTie(personId, otherPersonId, label, symmetric) }
     }
 
     fun removeTie(tieId: UUID) {

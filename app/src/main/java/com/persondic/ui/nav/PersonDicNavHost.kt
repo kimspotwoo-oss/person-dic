@@ -15,6 +15,7 @@ import com.persondic.ui.interactionlog.InteractionLogScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
 import com.persondic.ui.personadd.PersonAddScreen
 import com.persondic.ui.personlist.PersonListScreen
+import com.persondic.ui.relationmap.RelationMapScreen
 import com.persondic.ui.quickadd.QuickAddScreen
 import java.util.UUID
 
@@ -25,6 +26,7 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
             PersonListScreen(
                 onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
                 onGroupMapClick = { navController.navigate(Routes.GROUP_MAP) },
+                onRelationMapClick = { navController.navigate(Routes.RELATION_MAP) },
                 onQuickAddClick = { navController.navigate(Routes.QUICK_ADD) },
                 onBackupClick = { navController.navigate(Routes.BACKUP) },
                 onAddPersonClick = { navController.navigate(Routes.PERSON_ADD) },
@@ -43,6 +45,12 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
         }
         composable(Routes.GROUP_MAP) {
             GroupMapScreen(onBack = { navController.popBackStack() })
+        }
+        composable(Routes.RELATION_MAP) {
+            RelationMapScreen(
+                onBack = { navController.popBackStack() },
+                onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
+            )
         }
         composable(Routes.QUICK_ADD) {
             QuickAddScreen(onDone = { navController.popBackStack() })

@@ -4,6 +4,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -15,6 +16,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -25,12 +27,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Person
 import com.persondic.domain.SUGGESTED_TIE_LABELS
+import com.persondic.domain.SYMMETRIC_TIE_LABELS
 import com.persondic.domain.TieView
 import java.util.UUID
 
@@ -70,9 +74,12 @@ fun AddTieDialog(
     candidates: List<Person>,
     suggestedLabels: List<String>,
     onDismiss: () -> Unit,
-    onConfirm: (otherPersonId: UUID, label: String) -> Unit,
+    onConfirm: (otherPersonId: UUID, label: String, symmetric: Boolean) -> Unit,
 ) {
     var label by remember { mutableStateOf("") }
+    // Guessed from the label so the common cases need no thought, but still a checkbox: a label
+    // the user invents cannot be looked up in any list the app ships with.
+    var symmetric by remember { mutableStateOf(false) }
     var query by remember { mutableStateOf("") }
     var selected by remember { mutableStateOf<Person?>(null) }
 
@@ -100,15 +107,32 @@ fun AddTieDialog(
 
                 OutlinedTextField(
                     value = label,
-                    onValueChange = { label = it },
+                    onValueChange = {
+                        label = it
+                        symmetric = it.trim() in SYMMETRIC_TIE_LABELS
+                    },
                     modifier = Modifier.fillMaxWidth(),
                     singleLine = true,
                     label = { Text(stringResource(R.string.tie_label)) },
                 )
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                     suggestedLabels.forEach { suggestion ->
-                        AssistChip(onClick = { label = suggestion }, label = { Text(suggestion) })
+                        AssistChip(
+                            onClick = {
+                                label = suggestion
+                                symmetric = suggestion in SYMMETRIC_TIE_LABELS
+                            },
+                            label = { Text(suggestion) },
+                        )
                     }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Checkbox(checked = symmetric, onCheckedChange = { symmetric = it })
+                    Text(
+                        text = stringResource(R.string.tie_symmetric),
+                        style = MaterialTheme.typography.bodyMedium,
+                    )
                 }
 
                 OutlinedTextField(
@@ -141,7 +165,7 @@ fun AddTieDialog(
         },
         confirmButton = {
             TextButton(
-                onClick = { selected?.let { onConfirm(it.id, label) } },
+                onClick = { selected?.let { onConfirm(it.id, label, symmetric) } },
                 enabled = selected != null && label.isNotBlank(),
             ) {
                 Text(stringResource(R.string.action_add))

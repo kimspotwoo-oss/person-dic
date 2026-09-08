@@ -56,6 +56,7 @@ import java.util.UUID
 fun PersonListScreen(
     onPersonClick: (UUID) -> Unit,
     onGroupMapClick: () -> Unit,
+    onRelationMapClick: () -> Unit,
     onQuickAddClick: () -> Unit,
     onBackupClick: () -> Unit,
     onAddPersonClick: () -> Unit,
@@ -83,6 +84,13 @@ fun PersonListScreen(
                             onClick = {
                                 showMenu = false
                                 onGroupMapClick()
+                            },
+                        )
+                        DropdownMenuItem(
+                            text = { Text(stringResource(R.string.relation_map_open)) },
+                            onClick = {
+                                showMenu = false
+                                onRelationMapClick()
                             },
                         )
                         DropdownMenuItem(

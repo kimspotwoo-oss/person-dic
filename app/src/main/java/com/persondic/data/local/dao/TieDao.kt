@@ -15,6 +15,9 @@ interface TieDao {
     @Query("SELECT * FROM tie WHERE fromPersonId = :personId OR toPersonId = :personId")
     fun observeForPerson(personId: UUID): Flow<List<Tie>>
 
+    @Query("SELECT * FROM tie")
+    fun observeAll(): Flow<List<Tie>>
+
     @Query("SELECT DISTINCT label FROM tie ORDER BY label ASC")
     fun observeAllLabels(): Flow<List<String>>
 

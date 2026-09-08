@@ -53,6 +53,15 @@
     <string name="group_tag_suggestions">기존 그룹에서 선택</string>
     <string name="group_tag_remove">그룹 제거</string>
 
+    <string name="relation_map_open">관계도</string>
+    <string name="relation_map_title">관계도</string>
+    <string name="relation_map_all">전체</string>
+    <string name="relation_map_hint">나를 가운데 두고, 나와 이어진 사람이 안쪽에 놓입니다. 아래 버튼으로 보고 싶은 관계만 남길 수 있습니다.</string>
+    <string name="relation_map_legend">─● 양쪽 다 동그라미면 서로 같은 관계입니다. ─▶ 화살표는 방향이 있는 관계이고, 화살표가 가리키는 쪽이 그 라벨에 해당합니다.</string>
+    <string name="relation_map_no_self">아직 "나"가 없습니다. 만들면 관계도 가운데에 놓이고, 관계를 추가할 때 상대로도 고를 수 있습니다.</string>
+    <string name="relation_map_self_name">내 이름</string>
+    <string name="relation_map_create_self">나 만들기</string>
+
     <string name="group_map_open">그룹 맵</string>
     <string name="group_map_title">그룹 맵</string>
     <string name="group_map_empty">아직 그룹이 없습니다. 인물에 그룹을 붙이면 여기에 나타납니다.</string>
@@ -93,6 +102,7 @@
     <string name="tie_add_title">관계 추가</string>
     <string name="tie_hint">라벨은 고르는 사람을 설명합니다. "소개해준 사람"이면 그 사람이 소개해준 것입니다. 상대 화면에는 반대로 표시됩니다.</string>
     <string name="tie_label">관계 (예: 배우자)</string>
+    <string name="tie_symmetric">서로 같은 관계 (친구, 배우자처럼 양쪽에서 똑같이 읽히는 것)</string>
     <string name="tie_pick_person">상대 찾기</string>
     <string name="tie_narrow_search">%1$d명 더 있습니다. 이름을 입력해 좁혀보세요.</string>
     <string name="person_detail_facts_empty">아직 등록된 사실이 없습니다</string>

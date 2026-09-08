@@ -8,8 +8,10 @@ import kotlinx.serialization.Serializable
  *
  * 2 — 몇년생 moved out of the birthday into its own field, and fixed-information entries carry a
  * sensitivity. Format 1 files still read correctly: see BackupPerson.
+ * 3 — the owner has their own person row, and ties say whether they read both ways. Older files
+ * simply have neither, which is what their defaults say.
  */
-const val BACKUP_FORMAT_VERSION = 2
+const val BACKUP_FORMAT_VERSION = 3
 
 const val BACKUP_JSON_NAME = "backup.json"
 const val BACKUP_PHOTO_DIR = "photos"
@@ -49,6 +51,7 @@ data class BackupPerson(
     val birthdayIsLunar: Boolean = false,
     /** Format 1 only. Kept so a backup written by an older build still reads correctly. */
     val birthdayHasYear: Boolean = true,
+    val isSelf: Boolean = false,
     val createdAt: String? = null,
     val updatedAt: String? = null,
 )
@@ -110,6 +113,7 @@ data class BackupTie(
     val fromPersonId: String,
     val toPersonId: String,
     val label: String,
+    val symmetric: Boolean = false,
 )
 
 @Serializable

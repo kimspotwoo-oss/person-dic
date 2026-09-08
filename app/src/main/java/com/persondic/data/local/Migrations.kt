@@ -91,3 +91,20 @@ val MIGRATION_4_5 = object : Migration(4, 5) {
         )
     }
 }
+
+/**
+ * Adds the owner's own row and marks which ties read the same from both ends.
+ *
+ * Existing ties are backfilled from the labels the app suggested up to now, so a 배우자 recorded
+ * before this migration does not start rendering as a one-way arrow.
+ */
+val MIGRATION_5_6 = object : Migration(5, 6) {
+    override fun migrate(db: SupportSQLiteDatabase) {
+        db.execSQL("ALTER TABLE `person` ADD COLUMN `isSelf` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL("ALTER TABLE `tie` ADD COLUMN `symmetric` INTEGER NOT NULL DEFAULT 0")
+        db.execSQL(
+            "UPDATE `tie` SET `symmetric` = 1 WHERE `label` IN " +
+                "('친구', '배우자', '형제자매', '직장 동료')",
+        )
+    }
+}

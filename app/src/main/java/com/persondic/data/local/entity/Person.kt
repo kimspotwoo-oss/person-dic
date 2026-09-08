@@ -43,6 +43,16 @@ data class Person(
      * matches [birthYear]'s so a newly built Person is never self-contradictory.
      */
     val birthdayHasYear: Boolean = false,
+    /**
+     * True for the one row that stands for the app's owner.
+     *
+     * The owner has to be a real Person row because a Tie's foreign keys point at person(id), and
+     * relationships are recorded against them like anyone else. Keeping the id in settings instead
+     * would not survive a backup and restore.
+     *
+     * Everything that means "the people I know" filters this row out — see PersonDao.observeAll.
+     */
+    val isSelf: Boolean = false,
     val createdAt: Instant = Instant.now(),
     val updatedAt: Instant = Instant.now(),
 )

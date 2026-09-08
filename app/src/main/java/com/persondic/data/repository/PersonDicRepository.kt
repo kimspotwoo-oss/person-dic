@@ -42,7 +42,24 @@ class PersonDicRepository(
 
     // Person
 
+    /** The people I know. Excludes my own row; see Person.isSelf. */
     fun observePeople(): Flow<List<Person>> = personDao.observeAll()
+
+    /** Everyone including me, for the relationship graph and for picking the far end of a tie. */
+    fun observePeopleIncludingSelf(): Flow<List<Person>> = personDao.observeAllIncludingSelf()
+
+    fun observeSelf(): Flow<Person?> = personDao.observeSelf()
+
+    /**
+     * Returns my row, creating it the first time. Only one can exist, so a second call reuses the
+     * first rather than leaving two centres in the graph.
+     */
+    suspend fun ensureSelf(displayName: String): Person {
+        personDao.getSelf()?.let { return it }
+        val me = Person(displayName = displayName.trim().ifEmpty { DEFAULT_SELF_NAME }, isSelf = true)
+        personDao.insert(me)
+        return me
+    }
 
     fun observePerson(id: UUID): Flow<Person?> = personDao.observeById(id)
 
@@ -60,12 +77,21 @@ class PersonDicRepository(
 
     fun observeTies(personId: UUID): Flow<List<Tie>> = tieDao.observeForPerson(personId)
 
+    fun observeTies(): Flow<List<Tie>> = tieDao.observeAll()
+
     fun observeAllTieLabels(): Flow<List<String>> = tieDao.observeAllLabels()
 
-    suspend fun addTie(fromPersonId: UUID, toPersonId: UUID, label: String) {
+    suspend fun addTie(fromPersonId: UUID, toPersonId: UUID, label: String, symmetric: Boolean) {
         val trimmed = label.trim()
         if (trimmed.isEmpty() || fromPersonId == toPersonId) return
-        tieDao.insert(Tie(fromPersonId = fromPersonId, toPersonId = toPersonId, label = trimmed))
+        tieDao.insert(
+            Tie(
+                fromPersonId = fromPersonId,
+                toPersonId = toPersonId,
+                label = trimmed,
+                symmetric = symmetric,
+            ),
+        )
     }
 
     suspend fun removeTie(id: UUID) = tieDao.delete(id)
@@ -246,6 +272,9 @@ class PersonDicRepository(
         plan.dropped
     }
 }
+
+/** Used when the owner's row is created without a name being given. */
+private const val DEFAULT_SELF_NAME = "나"
 
 /** Below this a typed year is a slip, not a birth year. */
 private const val EARLIEST_BIRTH_YEAR = 1900

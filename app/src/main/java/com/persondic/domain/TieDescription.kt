@@ -37,10 +37,17 @@ fun describeTie(tie: Tie, viewerId: UUID, nameOf: (UUID) -> String?): TieView? =
 
 /** Offered in the editor so the same relation does not get typed three different ways. */
 val SUGGESTED_TIE_LABELS = listOf(
+    "친구",
     "배우자",
-    "부모",
-    "자녀",
     "형제자매",
     "직장 동료",
+    "부모",
+    "자녀",
     "소개해준 사람",
 )
+
+/**
+ * The suggested labels that read the same from either end, used to pre-tick the checkbox.
+ * Only a starting guess — what is stored is whatever the user leaves the box on.
+ */
+val SYMMETRIC_TIE_LABELS = setOf("친구", "배우자", "형제자매", "직장 동료")

@@ -10,6 +10,7 @@ object Routes {
     const val BRIEFING = "briefing/{personId}"
     const val INTERACTION_LOG = "interactionLog/{personId}?interactionId={interactionId}"
     const val GROUP_MAP = "groupMap"
+    const val RELATION_MAP = "relationMap"
     const val QUICK_ADD = "quickAdd"
     const val BACKUP = "backup"
 

@@ -67,7 +67,7 @@ class BackupManagerTest {
                 createdAt = Instant.parse("2026-01-01T01:02:03Z"),
                 updatedAt = Instant.parse("2026-02-02T04:05:06Z"),
             ),
-            Person(id = otherId, displayName = "이서연"),
+            Person(id = otherId, displayName = "이서연", isSelf = true),
         ),
         facts = listOf(
             Fact(
@@ -129,6 +129,7 @@ class BackupManagerTest {
                 fromPersonId = personId,
                 toPersonId = otherId,
                 label = "직장 동료",
+                symmetric = true,
             ),
         ),
     )

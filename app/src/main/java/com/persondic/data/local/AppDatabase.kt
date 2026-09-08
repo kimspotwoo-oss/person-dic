@@ -30,7 +30,7 @@ import com.persondic.data.local.entity.Tie
         PersonGroupTag::class,
         PersonAttribute::class,
     ],
-    version = 5,
+    version = 6,
     exportSchema = true,
 )
 @TypeConverters(Converters::class)

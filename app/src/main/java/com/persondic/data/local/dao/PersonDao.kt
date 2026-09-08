@@ -25,8 +25,19 @@ interface PersonDao {
     @Query("SELECT * FROM person WHERE id = :id")
     fun observeById(id: UUID): Flow<Person?>
 
-    @Query("SELECT * FROM person ORDER BY displayName ASC")
+    /** The people I know. The owner's own row is excluded so this stays safe by default. */
+    @Query("SELECT * FROM person WHERE isSelf = 0 ORDER BY displayName ASC")
     fun observeAll(): Flow<List<Person>>
+
+    /** Everyone including me — for the relationship graph and for picking the other end of a tie. */
+    @Query("SELECT * FROM person ORDER BY isSelf DESC, displayName ASC")
+    fun observeAllIncludingSelf(): Flow<List<Person>>
+
+    @Query("SELECT * FROM person WHERE isSelf = 1 LIMIT 1")
+    fun observeSelf(): Flow<Person?>
+
+    @Query("SELECT * FROM person WHERE isSelf = 1 LIMIT 1")
+    suspend fun getSelf(): Person?
 
     @Query("SELECT * FROM person")
     suspend fun getAll(): List<Person>
