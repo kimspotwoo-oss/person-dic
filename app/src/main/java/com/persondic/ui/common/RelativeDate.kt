@@ -11,12 +11,17 @@ fun relativeDateLabel(
 ): String {
     val date = instant.atZone(zoneId).toLocalDate()
     val today = now.atZone(zoneId).toLocalDate()
-    val days = ChronoUnit.DAYS.between(date, today)
-    return when {
-        days <= 0 -> "오늘"
-        days < 7 -> "${days}일 전"
-        days < 30 -> "${days / 7}주 전"
-        days < 365 -> "${days / 30}개월 전"
-        else -> "${days / 365}년 전"
-    }
+    return relativeDaysLabel(ChronoUnit.DAYS.between(date, today))
+}
+
+/**
+ * The same wording from a day count rather than an instant, for rows that already know the gap.
+ * Kept as one function so a meeting does not read "21일 전" in one place and "3주 전" in another.
+ */
+fun relativeDaysLabel(days: Long): String = when {
+    days <= 0 -> "오늘"
+    days < 7 -> "${days}일 전"
+    days < 30 -> "${days / 7}주 전"
+    days < 365 -> "${days / 30}개월 전"
+    else -> "${days / 365}년 전"
 }

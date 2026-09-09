@@ -6,6 +6,8 @@ import com.persondic.domain.Reminder
 data class PersonListItem(
     val person: Person,
     val tags: List<String>,
+    /** The few tags worth printing in a list row — see [com.persondic.domain.distinguishingTags]. */
+    val distinguishingTags: List<String>,
     val daysSinceLastInteraction: Long?,
 )
 

@@ -7,6 +7,7 @@ import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.domain.buildReminders
+import com.persondic.domain.distinguishingTags
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -52,10 +53,15 @@ class PersonListViewModel(
                 .groupBy { it.personId }
                 .mapValues { (_, rows) -> rows.map { it.tag }.sorted() }
 
+            // Over everyone, not over the search results: what a row says about a person should
+            // not change because someone else stopped matching the query.
+            val pickedTags = distinguishingTags(tagsByPerson)
+
             val items = filterPeople(inputs.people, tagsByPerson, inputs.query).map { person ->
                 PersonListItem(
                     person = person,
                     tags = tagsByPerson[person.id].orEmpty(),
+                    distinguishingTags = pickedTags[person.id].orEmpty(),
                     daysSinceLastInteraction = repository.daysSinceLastInteraction(person.id),
                 )
             }

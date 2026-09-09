@@ -4,6 +4,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -48,6 +49,7 @@ import com.persondic.domain.Reminder
 import com.persondic.domain.ReminderKind
 import com.persondic.ui.common.PersonAvatar
 import com.persondic.ui.common.ViewModelFactory
+import com.persondic.ui.common.relativeDaysLabel
 import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
 
@@ -161,7 +163,12 @@ fun PersonListScreen(
                     Text(stringResource(R.string.person_list_empty))
                 }
             } else {
-                LazyColumn(modifier = Modifier.fillMaxSize()) {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    // The add button floats over the list, and without this it sat on top of the
+                    // last person instead of below them.
+                    contentPadding = PaddingValues(bottom = 88.dp),
+                ) {
                     // Hidden while searching: these answer "who should I get in touch with",
                     // which is not the question being asked once a name has been typed.
                     if (uiState.searchQuery.isBlank() && uiState.reminders.isNotEmpty()) {
@@ -264,24 +271,28 @@ private fun PersonRow(item: PersonListItem, onClick: () -> Unit) {
         PersonAvatar(name = item.person.displayName, photoUri = item.person.photoUri)
         Spacer(modifier = Modifier.width(12.dp))
         Column(modifier = Modifier.weight(1f)) {
-            Text(text = item.person.displayName, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                text = item.person.displayName,
+                style = MaterialTheme.typography.bodyLarge,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+            )
+            // When it was last and every tag after it, this ran to two lines of text that was
+            // mostly true of everyone. Now: when, then only what sets this person apart, one line.
             val subtitle = listOfNotNull(
-                item.tags.takeIf { it.isNotEmpty() }?.joinToString(" ") { "#$it" },
-                lastMetLabel(item.daysSinceLastInteraction),
+                item.daysSinceLastInteraction?.let { relativeDaysLabel(it) },
+                item.distinguishingTags.takeIf { it.isNotEmpty() }?.joinToString(" ") { "#$it" },
             ).joinToString(" · ")
             if (subtitle.isNotEmpty()) {
                 Text(
                     text = subtitle,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
     }
 }
 
-private fun lastMetLabel(days: Long?): String? = when {
-    days == null -> null
-    days <= 0 -> "오늘 만남"
-    else -> "마지막 만남 ${days}일 전"
-}
