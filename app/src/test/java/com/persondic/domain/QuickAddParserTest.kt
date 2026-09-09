@@ -321,4 +321,21 @@ class QuickAddParserTest {
         assertNull(result.people.single().birthday)
         assertEquals(1, result.warnings.size)
     }
+
+    // --- the same split, used by the one-line box in the fixed-information editor ---
+
+    @Test
+    fun aLabelledValueSplitsOnItsFirstColon() {
+        assertEquals("학번" to "26", parseLabelledValue("학번: 26"))
+        assertEquals("주소" to "대구 중구 12:30 빌딩", parseLabelledValue("주소: 대구 중구 12:30 빌딩"))
+        assertEquals("학번" to "26", parseLabelledValue("  학번 :  26  "))
+    }
+
+    @Test
+    fun aLineWithNothingOnOneSideIsNotAValue() {
+        assertNull(parseLabelledValue("학번"))
+        assertNull(parseLabelledValue("학번:"))
+        assertNull(parseLabelledValue(": 26"))
+        assertNull(parseLabelledValue(""))
+    }
 }

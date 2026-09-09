@@ -163,14 +163,11 @@ private fun parseBlock(block: String, warnings: MutableList<String>): ParsedPers
             }
 
             line.startsWith("+") -> {
-                val body = line.removePrefix("+").trim()
-                val separator = body.indexOf(':')
-                val label = if (separator >= 0) body.take(separator).trim() else ""
-                val value = if (separator >= 0) body.substring(separator + 1).trim() else ""
-                if (label.isEmpty() || value.isEmpty()) {
+                val parsed = parseLabelledValue(line.removePrefix("+"))
+                if (parsed == null) {
                     warnings += "고정 정보는 \"+항목: 내용\" 형식이어야 합니다: \"$line\""
                 } else {
-                    attributes += ParsedAttribute(label, value)
+                    attributes += ParsedAttribute(parsed.first, parsed.second)
                 }
             }
 
@@ -275,3 +272,19 @@ private fun parseBirthday(text: String): ParsedBirthday? {
 
 private const val EARLIEST_BIRTH_YEAR = 1900
 private const val LATEST_BIRTH_YEAR = 2200
+
+/**
+ * Splits "학번: 26" into its label and its value, or null when either side is missing.
+ *
+ * Shared with the one-line box in the fixed-information editor so that a person typed in through
+ * the quick-add screen and one typed in by hand take the same shape. Only the first colon counts —
+ * a value may contain one ("주소: 대구 중구 …").
+ */
+fun parseLabelledValue(text: String): Pair<String, String>? {
+    val body = text.trim()
+    val separator = body.indexOf(':')
+    if (separator < 0) return null
+    val label = body.take(separator).trim()
+    val value = body.substring(separator + 1).trim()
+    return if (label.isEmpty() || value.isEmpty()) null else label to value
+}

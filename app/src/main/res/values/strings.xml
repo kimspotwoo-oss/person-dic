@@ -51,6 +51,9 @@
     <string name="group_tags_edit">그룹 수정</string>
     <string name="group_tags_none">그룹 없음</string>
     <string name="fixed_info_add">고정 정보 추가</string>
+    <string name="fixed_info_quick_label">한 줄로 추가</string>
+    <string name="fixed_info_quick_hint">학번: 26</string>
+    <string name="fixed_info_detailed">민감도까지 정해서 추가</string>
     <string name="group_tags_label">그룹 (해시태그)</string>
     <string name="group_tag_add_hint">새 그룹 입력</string>
     <string name="group_tag_suggestions">기존 그룹에서 선택</string>

@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Checkbox
@@ -34,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.BIRTHDAY_YEAR_UNKNOWN
 import com.persondic.data.model.Sensitivity
+import com.persondic.domain.parseLabelledValue
 import java.time.LocalDate
 
 /**
@@ -62,6 +64,7 @@ fun FixedInfoFields(
     var newLabel by remember { mutableStateOf("") }
     var newValue by remember { mutableStateOf("") }
     var newSensitivity by remember { mutableStateOf(Sensitivity.NORMAL) }
+    var quickEntry by remember { mutableStateOf("") }
 
     // Seeded once, then owned by the box. Re-keying it on birthYear would blank the field the
     // moment a partly typed year like "199" stopped being a plausible year.
@@ -159,6 +162,43 @@ fun FixedInfoFields(
             }
         }
 
+        // One line and one tap. Group tags were winning over fixed information for no better
+        // reason than cost: a tag was a word and a plus, an entry here was four boxes. So the
+        // ordinary case — a label, a value, nothing sensitive — is now one box too, and the
+        // long form below is left for when the sensitivity actually needs setting.
+        val quickParsed = parseLabelledValue(quickEntry)
+        Row(modifier = Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+            OutlinedTextField(
+                value = quickEntry,
+                onValueChange = { quickEntry = it },
+                modifier = Modifier.weight(1f),
+                singleLine = true,
+                label = { Text(stringResource(R.string.fixed_info_quick_label)) },
+                placeholder = { Text(stringResource(R.string.fixed_info_quick_hint)) },
+            )
+            IconButton(
+                onClick = {
+                    quickParsed?.let { (label, value) ->
+                        onAddAttribute(AttributeDraft(label, value, Sensitivity.NORMAL))
+                        quickEntry = ""
+                    }
+                },
+                enabled = quickParsed != null,
+            ) {
+                Icon(Icons.Default.Add, contentDescription = stringResource(R.string.fixed_info_add_attribute))
+            }
+        }
+        val unusedSuggestions = suggestedLabels.filterNot { label -> attributes.any { it.label == label } }
+        if (unusedSuggestions.isNotEmpty()) {
+            // The chips fill the one-line box, which is the path they are a shortcut for.
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                unusedSuggestions.forEach { suggestion ->
+                    AssistChip(onClick = { quickEntry = "$suggestion: " }, label = { Text(suggestion) })
+                }
+            }
+        }
+
+        SectionLabel(stringResource(R.string.fixed_info_detailed))
         OutlinedTextField(
             value = newLabel,
             onValueChange = { newLabel = it },
@@ -166,14 +206,6 @@ fun FixedInfoFields(
             singleLine = true,
             label = { Text(stringResource(R.string.fixed_info_attribute_label)) },
         )
-        val unusedSuggestions = suggestedLabels.filterNot { label -> attributes.any { it.label == label } }
-        if (unusedSuggestions.isNotEmpty()) {
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-                unusedSuggestions.forEach { suggestion ->
-                    AssistChip(onClick = { newLabel = suggestion }, label = { Text(suggestion) })
-                }
-            }
-        }
         OutlinedTextField(
             value = newValue,
             onValueChange = { newValue = it },
