@@ -1,14 +1,13 @@
 package com.persondic.ui.persondetail
 
 import android.app.DatePickerDialog
-import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.OutlinedButton
@@ -32,6 +31,7 @@ import com.persondic.data.model.Direction
 import com.persondic.ui.common.directionLabel
 import java.time.LocalDate
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddCommitmentDialog(
     onDismiss: () -> Unit,
@@ -54,13 +54,14 @@ fun AddCommitmentDialog(
                     modifier = Modifier.fillMaxWidth(),
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Row(modifier = Modifier.horizontalScroll(rememberScrollState())) {
+                // Wrapping, not scrolling: the third choice was clipped at the dialog's edge with
+                // nothing to say it was there.
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                     Direction.entries.forEach { candidate ->
                         FilterChip(
                             selected = direction == candidate,
                             onClick = { direction = candidate },
                             label = { Text(directionLabel(candidate)) },
-                            modifier = Modifier.padding(end = 8.dp),
                         )
                     }
                 }

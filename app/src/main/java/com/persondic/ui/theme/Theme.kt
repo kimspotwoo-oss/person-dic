@@ -25,7 +25,9 @@ private val LightColorScheme = lightColorScheme(
 @Composable
 fun PersonDicTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
+    // Material You off on purpose: with it on, the app takes the wallpaper's colours and the
+    // palette below never appears, so every install looks like a different app.
+    dynamicColor: Boolean = false,
     content: @Composable () -> Unit,
 ) {
     val colorScheme = when {

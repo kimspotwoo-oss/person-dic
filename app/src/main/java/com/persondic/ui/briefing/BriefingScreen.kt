@@ -3,6 +3,7 @@ package com.persondic.ui.briefing
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -57,10 +58,14 @@ fun BriefingScreen(
             )
         },
         bottomBar = {
+            // enableEdgeToEdge() draws behind the system bars, and a bare Button — unlike
+            // BottomAppBar — does not inset itself, so the navigation bar was sitting on top of
+            // the app's most-pressed button and eating its lower half.
             Button(
                 onClick = { onRecordInteraction(personId) },
                 modifier = Modifier
                     .fillMaxWidth()
+                    .navigationBarsPadding()
                     .padding(16.dp),
             ) {
                 Text(stringResource(R.string.briefing_record_interaction))

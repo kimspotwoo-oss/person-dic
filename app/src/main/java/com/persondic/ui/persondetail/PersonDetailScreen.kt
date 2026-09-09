@@ -22,6 +22,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -44,7 +45,6 @@ import com.persondic.data.local.entity.PersonAttribute
 import com.persondic.domain.TieView
 import com.persondic.ui.common.FixedInfoBlock
 import com.persondic.ui.common.SUGGESTED_ATTRIBUTE_LABELS
-import com.persondic.ui.common.GroupTagEditor
 import com.persondic.ui.common.PhotoPickerRow
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.deleteStoredPhoto
@@ -86,6 +86,7 @@ fun PersonDetailScreen(
     var actionMenuCommitment by remember { mutableStateOf<Commitment?>(null) }
     var showFixedInfoDialog by rememberSaveable { mutableStateOf(false) }
     var showProfileDialog by rememberSaveable { mutableStateOf(false) }
+    var showTagDialog by rememberSaveable { mutableStateOf(false) }
     var showAddTieDialog by rememberSaveable { mutableStateOf(false) }
     var actionMenuTie by remember { mutableStateOf<TieView?>(null) }
 
@@ -128,10 +129,10 @@ fun PersonDetailScreen(
                     PersonHeader(
                         person = loaded,
                         tags = tags,
-                        allTags = allTags,
                         attributes = attributes,
                         onEditFixedInfo = { showFixedInfoDialog = true },
                         onEditProfile = { showProfileDialog = true },
+                        onEditTags = { showTagDialog = true },
                         onPhotoPicked = { picked ->
                             deleteStoredPhoto(loaded.photoUri)
                             viewModel.setPhoto(picked)
@@ -140,8 +141,6 @@ fun PersonDetailScreen(
                             deleteStoredPhoto(loaded.photoUri)
                             viewModel.setPhoto(null)
                         },
-                        onAddTag = viewModel::addTag,
-                        onRemoveTag = viewModel::removeTag,
                     )
                 }
             }
@@ -229,6 +228,16 @@ fun PersonDetailScreen(
         )
     }
 
+    if (showTagDialog) {
+        GroupTagDialog(
+            selectedTags = tags,
+            allTags = allTags,
+            onDismiss = { showTagDialog = false },
+            onAddTag = viewModel::addTag,
+            onRemoveTag = viewModel::removeTag,
+        )
+    }
+
     if (showProfileDialog) {
         person?.let { loaded ->
             ProfileEditDialog(
@@ -307,14 +316,12 @@ fun PersonDetailScreen(
 private fun PersonHeader(
     person: Person,
     tags: List<String>,
-    allTags: List<String>,
     attributes: List<PersonAttribute>,
     onEditFixedInfo: () -> Unit,
     onEditProfile: () -> Unit,
+    onEditTags: () -> Unit,
     onPhotoPicked: (String) -> Unit,
     onPhotoCleared: () -> Unit,
-    onAddTag: (String) -> Unit,
-    onRemoveTag: (String) -> Unit,
 ) {
     Column(modifier = Modifier.padding(16.dp)) {
         PhotoPickerRow(
@@ -352,25 +359,54 @@ private fun PersonHeader(
                 modifier = Modifier.padding(top = 4.dp),
             )
         }
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = 8.dp),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                FixedInfoBlock(person = person, attributes = attributes)
+        // With nothing recorded there is nothing for the pencil to sit beside, and it was left
+        // hanging on an empty line looking like a stray control.
+        val hasFixedInfo = person.birthday != null || person.birthYear != null || attributes.isNotEmpty()
+        if (hasFixedInfo) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 8.dp),
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    FixedInfoBlock(person = person, attributes = attributes)
+                }
+                IconButton(onClick = onEditFixedInfo) {
+                    Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.fixed_info_edit))
+                }
             }
-            IconButton(onClick = onEditFixedInfo) {
-                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.fixed_info_edit))
+        } else {
+            TextButton(onClick = onEditFixedInfo) {
+                Text(stringResource(R.string.fixed_info_add))
             }
         }
 
-        GroupTagEditor(
-            selectedTags = tags,
-            allTags = allTags,
-            onAddTag = onAddTag,
-            onRemoveTag = onRemoveTag,
-        )
+        // Read-only here, edited behind the pencil. As chips with every existing group offered
+        // underneath, this one block was taking half the screen and grew with each new group.
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 4.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            Text(
+                text = if (tags.isEmpty()) {
+                    stringResource(R.string.group_tags_none)
+                } else {
+                    tags.joinToString(" ") { "#$it" }
+                },
+                style = MaterialTheme.typography.bodyMedium,
+                color = if (tags.isEmpty()) {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                } else {
+                    MaterialTheme.colorScheme.primary
+                },
+                modifier = Modifier.weight(1f),
+            )
+            IconButton(onClick = onEditTags) {
+                Icon(Icons.Default.Edit, contentDescription = stringResource(R.string.group_tags_edit))
+            }
+        }
     }
 }
