@@ -23,6 +23,88 @@ class RelationGraphTest {
 
     private fun RelationGraph.node(person: Person) = nodes.first { it.personId == person.id }
 
+    /** Everyone in the graph, as (name, x, y, radius) — what actually gets drawn. */
+    private fun RelationGraph.circles() = nodes.map { Triple(it.name, it.x to it.y, nodeRadius) }
+
+    private fun crowd(count: Int) = (1..count).map { Person(displayName = "사람$it") }
+
+    // --- what the four-people-in-a-column picture on screen was actually made of ---
+
+    @Test
+    fun everyCircleFitsInsideTheSquare() {
+        // Ten unconnected people is the worst case for the outer ring.
+        val graph = buildRelationGraph(listOf(me) + crowd(10), emptyList())
+
+        graph.circles().forEach { (name, position, radius) ->
+            val (x, y) = position
+            assertTrue("$name at x=$x hangs off the left", x - radius >= -TOLERANCE)
+            assertTrue("$name at x=$x hangs off the right", x + radius <= 1f + TOLERANCE)
+            assertTrue("$name at y=$y hangs off the top", y - radius >= -TOLERANCE)
+            assertTrue("$name at y=$y hangs off the bottom", y + radius <= 1f + TOLERANCE)
+        }
+    }
+
+    @Test
+    fun noTwoCirclesOverlapEvenOnDifferentRings() {
+        // A person on each ring: 김민준 is tied to me, 이서연 only to 김민준, 박지호 to nobody.
+        // These three used to line up at the top of the picture and read as one blob.
+        val graph = buildRelationGraph(
+            listOf(me, minjun, seoyeon, jiho),
+            listOf(tie(me, minjun, "친구", true), tie(minjun, seoyeon, "친구", true)),
+        )
+
+        assertNoOverlaps(graph)
+    }
+
+    @Test
+    fun stillNoOverlapsWithACrowdOnEveryRing() {
+        val people = crowd(12)
+        val ties = listOf(
+            tie(me, people[0], "친구", true),
+            tie(me, people[1], "친구", true),
+            tie(people[0], people[2], "친구", true),
+            tie(people[1], people[3], "친구", true),
+        )
+        assertNoOverlaps(buildRelationGraph(listOf(me) + people, ties))
+    }
+
+    @Test
+    fun nodesShrinkRatherThanCollideWhenThereAreManyPeople() {
+        val few = buildRelationGraph(listOf(me) + crowd(4), emptyList())
+        val many = buildRelationGraph(listOf(me) + crowd(40), emptyList())
+
+        assertTrue(
+            "40 people should be drawn smaller than 4, got ${few.nodeRadius} then ${many.nodeRadius}",
+            many.nodeRadius < few.nodeRadius,
+        )
+        assertNoOverlaps(many)
+    }
+
+    @Test
+    fun filteringDoesNotBreakTheFit() {
+        val people = crowd(8)
+        val ties = listOf(
+            tie(me, people[0], "친구", true),
+            tie(me, people[1], "소개해준 사람"),
+            tie(people[1], people[2], "친구", true),
+        )
+        assertNoOverlaps(buildRelationGraph(listOf(me) + people, ties, visibleLabels = setOf("친구")))
+    }
+
+    private fun assertNoOverlaps(graph: RelationGraph) {
+        val nodes = graph.nodes
+        for (i in nodes.indices) {
+            for (j in i + 1 until nodes.size) {
+                val gap = hypot(nodes[i].x - nodes[j].x, nodes[i].y - nodes[j].y)
+                assertTrue(
+                    "${nodes[i].name} and ${nodes[j].name} are $gap apart, " +
+                        "closer than the ${2 * graph.nodeRadius} their circles need",
+                    gap >= 2 * graph.nodeRadius - TOLERANCE,
+                )
+            }
+        }
+    }
+
     @Test
     fun theOwnerSitsAtTheCentre() {
         val graph = buildRelationGraph(listOf(me, minjun), listOf(tie(me, minjun, "친구", true)))
@@ -164,5 +246,10 @@ class RelationGraphTest {
             }
         }
         assertNotNull(graph.nodes.singleOrNull { it.isSelf })
+    }
+
+    private companion object {
+        /** Float arithmetic only; anything bigger than this is a real overlap. */
+        const val TOLERANCE = 1e-4f
     }
 }

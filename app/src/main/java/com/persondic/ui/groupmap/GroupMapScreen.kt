@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -147,7 +148,12 @@ private fun BubbleMap(
     ) {
         val widthPx = constraints.maxWidth.toFloat()
         val heightPx = constraints.maxHeight.toFloat()
+        // One square for both axes. Scaling x by the width and y by the height while taking radii
+        // from the smaller of the two stretched the layout sideways, so the gaps the layout worked
+        // out were not the gaps on screen.
         val scale = min(widthPx, heightPx)
+        val originX = (widthPx - scale) / 2f
+        val originY = (heightPx - scale) / 2f
 
         Canvas(
             modifier = Modifier
@@ -156,7 +162,7 @@ private fun BubbleMap(
                     detectTapGestures { tap ->
                         val hit = bubbles.firstOrNull { bubble ->
                             val center = positions[bubble.tag] ?: return@firstOrNull false
-                            val centerPx = Offset(center.x * widthPx, center.y * heightPx)
+                            val centerPx = Offset(originX + center.x * scale, originY + center.y * scale)
                             val radiusPx = bubbleRadius(bubble.memberIds.size, maxMembers) * scale
                             (tap - centerPx).getDistance() <= radiusPx
                         }
@@ -166,7 +172,7 @@ private fun BubbleMap(
         ) {
             bubbles.forEach { bubble ->
                 val center = positions[bubble.tag] ?: return@forEach
-                val centerPx = Offset(center.x * widthPx, center.y * heightPx)
+                val centerPx = Offset(originX + center.x * scale, originY + center.y * scale)
                 val radiusPx = bubbleRadius(bubble.memberIds.size, maxMembers) * scale
                 val isSelected = bubble.tag in selectedTags
                 drawCircle(
@@ -186,23 +192,28 @@ private fun BubbleMap(
 
         bubbles.forEach { bubble ->
             val center = positions[bubble.tag] ?: return@forEach
-            val radiusPx = bubbleRadius(bubble.memberIds.size, maxMembers) * scale
-            val diameterDp = with(LocalDensity.current) { (radiusPx * 2).toDp() }
+            // The name is given its own width instead of the circle's: a long tag squeezed into a
+            // small bubble wrapped mid-word and spilled out of it.
+            val labelHalfWidthPx = with(LocalDensity.current) { (LABEL_WIDTH / 2).toPx() }
+            val labelHalfHeightPx = with(LocalDensity.current) { (LABEL_HEIGHT / 2).toPx() }
             Box(
                 modifier = Modifier
                     .offset {
                         IntOffset(
-                            x = (center.x * widthPx - radiusPx).roundToInt(),
-                            y = (center.y * heightPx - radiusPx).roundToInt(),
+                            x = (originX + center.x * scale - labelHalfWidthPx).roundToInt(),
+                            y = (originY + center.y * scale - labelHalfHeightPx).roundToInt(),
                         )
                     }
-                    .size(diameterDp),
+                    .width(LABEL_WIDTH)
+                    .height(LABEL_HEIGHT),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     text = "#${bubble.tag}\n${bubble.memberIds.size}",
                     style = MaterialTheme.typography.labelMedium,
                     textAlign = TextAlign.Center,
+                    maxLines = 2,
+                    overflow = TextOverflow.Ellipsis,
                 )
             }
         }
@@ -322,6 +333,15 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
 
     Box(modifier = Modifier.height(24.dp))
 }
+
+/**
+ * Names get their own width rather than the circle's. A tag squeezed into a small bubble used to
+ * wrap mid-word and spill past the edge of it; the layout already keeps this much clear.
+ */
+private val LABEL_WIDTH = 96.dp
+
+/** Two lines of labelMedium: the tag and the member count. Matches BubbleLayout's own estimate. */
+private val LABEL_HEIGHT = 34.dp
 
 private const val NAME_SEPARATOR = "  "
 

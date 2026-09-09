@@ -176,7 +176,9 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
         fun place(x: Float, y: Float) = Offset(originX + x * side, originY + y * side)
 
         val positions = graph.nodes.associate { it.personId to place(it.x, it.y) }
-        val nodeRadiusPx = with(LocalDensity.current) { NODE_RADIUS.toPx() }
+        // The layout sized the nodes to the rings it produced; drawing at any other size puts
+        // circles back on top of each other or off the edge.
+        val nodeRadiusPx = graph.nodeRadius * side
 
         Canvas(
             modifier = Modifier
@@ -241,7 +243,7 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
             }
         }
 
-        val diameter = NODE_RADIUS * 2
+        val diameter = with(LocalDensity.current) { (nodeRadiusPx * 2).toDp() }
         graph.nodes.forEach { node ->
             val centre = positions[node.personId] ?: return@forEach
             Box(
@@ -267,6 +269,5 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
     }
 }
 
-private val NODE_RADIUS = 26.dp
 private const val ARROW_HEAD_PX = 18f
 private const val ARROW_SPREAD = 0.5f
