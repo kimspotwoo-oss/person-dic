@@ -28,6 +28,10 @@ import java.time.LocalDate
  * How a birthday reads. The year and the date are independent, so any of these can come out:
  * "1994년생", "3월 15일 · 14일 뒤", "1994년생 3월 15일 · 14일 뒤 32세".
  *
+ * The whole thing rarely fits one line beside a 72dp label, so the pieces hold together with
+ * non-breaking spaces and the wrap is left to fall on the " · " between them. Without that it
+ * broke wherever it ran out of room — "…243일" on one line and "뒤 21세" on the next.
+ *
  * A lunar birthday gets no countdown — see [BirthdayCalculator].
  */
 @Composable

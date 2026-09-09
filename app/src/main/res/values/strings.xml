@@ -41,12 +41,12 @@
     <string name="birthday_clear">생일 지우기</string>
     <string name="birthday_lunar_toggle">음력</string>
     <string name="birthday_lunar_note">음력은 양력 변환표가 없어 남은 날짜를 계산하지 않습니다.</string>
-    <string name="birthday_no_year">%1$d월 %2$d일</string>
-    <string name="birthday_lunar">음력 %1$d월 %2$d일</string>
+    <string name="birthday_no_year">%1$d월\u00A0%2$d일</string>
+    <string name="birthday_lunar">음력\u00A0%1$d월\u00A0%2$d일</string>
     <string name="birthday_today">오늘</string>
-    <string name="birthday_today_with_age">오늘 %1$d세</string>
-    <string name="birthday_in_days">%1$d일 뒤</string>
-    <string name="birthday_in_days_with_age">%1$d일 뒤 %2$d세</string>
+    <string name="birthday_today_with_age">오늘\u00A0%1$d세</string>
+    <string name="birthday_in_days">%1$d일\u00A0뒤</string>
+    <string name="birthday_in_days_with_age">%1$d일\u00A0뒤 %2$d세</string>
 
     <string name="group_tags_edit">그룹 수정</string>
     <string name="group_tags_none">그룹 없음</string>

@@ -227,117 +227,132 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
     val regions = remember(selected) { vennRegions(selected) }
     val primary = MaterialTheme.colorScheme.primary
     val onSurface = MaterialTheme.colorScheme.onSurface
+    val filled = regions.filter { it.memberIds.isNotEmpty() }
 
-    Text(
-        text = selected.joinToString(" · ") { "#${it.tag}" },
-        style = MaterialTheme.typography.titleMedium,
-        modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
-    )
-
-    // The container is shaped like the diagram and the diagram is scaled to fill it, so none of
-    // the width goes to empty margin — that is what makes the circles, and the room for names
-    // inside them, as large as the screen allows.
-    BoxWithConstraints(
-        modifier = Modifier
-            .fillMaxWidth()
-            .aspectRatio(bounds.aspectRatio),
-    ) {
-        val boxWidth = constraints.maxWidth.toFloat()
-        val boxHeight = constraints.maxHeight.toFloat()
-        val scale = min(boxWidth / bounds.width, boxHeight / bounds.height)
-        val originX = (boxWidth - bounds.width * scale) / 2f
-        val originY = (boxHeight - bounds.height * scale) / 2f
-        fun place(point: Offset) = Offset(
-            originX + (point.x - bounds.minX) * scale,
-            originY + (point.y - bounds.minY) * scale,
-        )
-
-        Canvas(modifier = Modifier.fillMaxSize()) {
-            circles.forEach { circle ->
-                val centerPx = place(circle.center)
-                drawCircle(color = primary, radius = circle.radius * scale, center = centerPx, alpha = 0.16f)
-                drawCircle(
-                    color = primary,
-                    radius = circle.radius * scale,
-                    center = centerPx,
-                    style = Stroke(width = 3f),
-                )
-            }
-        }
-
+    // One measurement for the whole section. The diagram box below is shaped exactly like the
+    // diagram, so its scale is this one — which is what lets the list underneath know what the
+    // drawing managed to fit and say only what the drawing could not.
+    BoxWithConstraints(modifier = Modifier.fillMaxWidth()) {
         val density = LocalDensity.current
-        regions.filter { it.memberIds.isNotEmpty() }.forEach { region ->
-            val widthPx = region.box.width * scale
-            val heightPx = region.box.height * scale
-            val widthDp = with(density) { widthPx.toDp() }
-            val heightDp = with(density) { heightPx.toDp() }
-            val anchorPx = place(region.box.center)
+        val scale = constraints.maxWidth.toFloat() / bounds.width
+        fun place(point: Offset) =
+            Offset((point.x - bounds.minX) * scale, (point.y - bounds.minY) * scale)
 
+        val packedByRegion = filled.associate { region ->
+            val widthDp = with(density) { (region.box.width * scale).toDp() }
+            val heightDp = with(density) { (region.box.height * scale).toDp() }
             // Dividing by the font scale is what keeps the estimate honest when the reader has
             // text enlarged: the box is fixed, so the room has to shrink instead.
             val fontScale = density.fontScale
             val names = region.memberIds.mapNotNull { uiState.peopleById[it]?.displayName }
-            val packed = packNames(names, widthDp.value / fontScale, heightDp.value / fontScale)
-            val overflow = stringResource(R.string.group_map_more_members, packed.hidden)
-            val text = buildString {
-                append(packed.shown.joinToString(NAME_SEPARATOR))
-                if (packed.showOverflowMarker && packed.hidden > 0) {
-                    if (isNotEmpty()) append(NAME_SEPARATOR)
-                    append(overflow)
-                }
-            }
+            region.label to packNames(names, widthDp.value / fontScale, heightDp.value / fontScale)
+        }
 
-            if (text.isNotEmpty()) {
-                Box(
-                    modifier = Modifier
-                        .offset {
-                            IntOffset(
-                                x = (anchorPx.x - widthPx / 2f).roundToInt(),
-                                y = (anchorPx.y - heightPx / 2f).roundToInt(),
+        Column {
+            Text(
+                text = selected.joinToString(" · ") { "#${it.tag}" },
+                style = MaterialTheme.typography.titleMedium,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 8.dp),
+            )
+
+            // The container is shaped like the diagram and the diagram is scaled to fill it, so
+            // none of the width goes to empty margin — that is what makes the circles, and the
+            // room for names inside them, as large as the screen allows.
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .aspectRatio(bounds.aspectRatio),
+            ) {
+                Canvas(modifier = Modifier.fillMaxSize()) {
+                    circles.forEach { circle ->
+                        val centerPx = place(circle.center)
+                        drawCircle(
+                            color = primary,
+                            radius = circle.radius * scale,
+                            center = centerPx,
+                            alpha = 0.16f,
+                        )
+                        drawCircle(
+                            color = primary,
+                            radius = circle.radius * scale,
+                            center = centerPx,
+                            style = Stroke(width = 3f),
+                        )
+                    }
+                }
+
+                filled.forEach { region ->
+                    val packed = packedByRegion[region.label] ?: return@forEach
+                    val widthPx = region.box.width * scale
+                    val heightPx = region.box.height * scale
+                    val widthDp = with(density) { widthPx.toDp() }
+                    val heightDp = with(density) { heightPx.toDp() }
+                    val anchorPx = place(region.box.center)
+                    val overflow = stringResource(R.string.group_map_more_members, packed.hidden)
+                    val text = buildString {
+                        append(packed.shown.joinToString(NAME_SEPARATOR))
+                        if (packed.showOverflowMarker && packed.hidden > 0) {
+                            if (isNotEmpty()) append(NAME_SEPARATOR)
+                            append(overflow)
+                        }
+                    }
+
+                    if (text.isNotEmpty()) {
+                        Box(
+                            modifier = Modifier
+                                .offset {
+                                    IntOffset(
+                                        x = (anchorPx.x - widthPx / 2f).roundToInt(),
+                                        y = (anchorPx.y - heightPx / 2f).roundToInt(),
+                                    )
+                                }
+                                .size(width = widthDp, height = heightDp)
+                                .clipToBounds(),
+                            contentAlignment = Alignment.Center,
+                        ) {
+                            Text(
+                                text = text,
+                                style = MaterialTheme.typography.labelSmall,
+                                color = onSurface,
+                                textAlign = TextAlign.Center,
+                                maxLines = (heightDp.value / (NAME_LINE_HEIGHT.value * density.fontScale))
+                                    .toInt()
+                                    .coerceAtLeast(1),
+                                overflow = TextOverflow.Clip,
                             )
                         }
-                        .size(width = widthDp, height = heightDp)
-                        .clipToBounds(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    Text(
-                        text = text,
-                        style = MaterialTheme.typography.labelSmall,
-                        color = onSurface,
-                        textAlign = TextAlign.Center,
-                        maxLines = (heightDp.value / (NAME_LINE_HEIGHT.value * fontScale))
-                            .toInt()
-                            .coerceAtLeast(1),
-                        overflow = TextOverflow.Clip,
-                    )
+                    }
                 }
             }
+
+            // The circles carry no labels of their own, so this is where you find out which one is
+            // which — it stays. What goes is the roll call of names underneath each heading, once
+            // the drawing has already shown every one of them; that was the same list printed
+            // twice, one above the other.
+            filled.forEach { region ->
+                val packed = packedByRegion[region.label]
+                Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
+                    Text(
+                        text = "${region.label} (${region.memberIds.size})",
+                        style = MaterialTheme.typography.labelLarge,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                    if (packed == null || packed.hidden > 0) {
+                        Text(
+                            text = region.memberIds
+                                .mapNotNull { uiState.peopleById[it]?.displayName }
+                                .joinToString(", "),
+                            style = MaterialTheme.typography.bodyMedium,
+                        )
+                    }
+                }
+            }
+
+            Box(modifier = Modifier.height(24.dp))
         }
     }
-
-    regions.filter { it.memberIds.isNotEmpty() }.forEach { region ->
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
-            Text(
-                text = "${region.label} (${region.memberIds.size})",
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.primary,
-            )
-            Text(
-                text = region.memberIds
-                    .mapNotNull { uiState.peopleById[it]?.displayName }
-                    .joinToString(", "),
-                style = MaterialTheme.typography.bodyMedium,
-            )
-        }
-    }
-
-    Box(modifier = Modifier.height(24.dp))
 }
 
-/**
- * Names get their own width rather than the circle's. A tag squeezed into a small bubble used to
- * wrap mid-word and spill past the edge of it; the layout already keeps this much clear.
- */
 private val LABEL_WIDTH = 96.dp
 
 /** Two lines of labelMedium: the tag and the member count. Matches BubbleLayout's own estimate. */
