@@ -137,14 +137,29 @@ private fun clamp(positions: Array<Offset>, bounds: List<Offset>) {
  * the height on every phone wider than it is 360dp.
  */
 private const val CANVAS_DP = 360f
-private const val LABEL_GLYPH_DP = 12f
 private const val LABEL_LINE_DP = 17f
+
+/**
+ * Slightly wider than a Hangul glyph actually measures at labelMedium, on purpose. Estimating
+ * short leaves the name a pixel too little room, and the wrap that follows costs a whole line —
+ * "#전기전자공학부" broke across two and pushed the member count past the last line it was allowed.
+ */
+private const val LABEL_GLYPH_DP = 13f
 
 /** The name and the member count, on two lines. */
 private const val LABEL_HALF_HEIGHT = LABEL_LINE_DP / CANVAS_DP
 
 private const val NUDGE = 0.002f
 
-/** Hangul is monospaced enough at this size for a character count to stand in for measuring. */
-private fun labelHalfWidth(tag: String): Float =
-    (tag.length + 1) * LABEL_GLYPH_DP / 2f / CANVAS_DP
+/**
+ * How much room a name needs, in dp. The drawing has to lay the label out at exactly this width:
+ * narrower and the name is cut short, wider and two names can touch after the layout decided they
+ * would not. Hangul is monospaced enough at this size for a character count to stand in for
+ * measuring; the extra character is the '#'.
+ */
+fun labelWidthDp(tag: String): Float = (tag.length + 1) * LABEL_GLYPH_DP
+
+/** Two lines of labelMedium: the name and the count. */
+const val LABEL_HEIGHT_DP = 2 * LABEL_LINE_DP
+
+private fun labelHalfWidth(tag: String): Float = labelWidthDp(tag) / 2f / CANVAS_DP

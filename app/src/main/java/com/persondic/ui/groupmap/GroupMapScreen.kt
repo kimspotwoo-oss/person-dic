@@ -12,7 +12,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -192,10 +193,14 @@ private fun BubbleMap(
 
         bubbles.forEach { bubble ->
             val center = positions[bubble.tag] ?: return@forEach
-            // The name is given its own width instead of the circle's: a long tag squeezed into a
-            // small bubble wrapped mid-word and spilled out of it.
-            val labelHalfWidthPx = with(LocalDensity.current) { (LABEL_WIDTH / 2).toPx() }
-            val labelHalfHeightPx = with(LocalDensity.current) { (LABEL_HEIGHT / 2).toPx() }
+            // Exactly the width the layout reserved for this name, so the two agree — and required
+            // rather than merely asked for. A plain width is still capped by whatever is left of
+            // the parent, so a bubble near an edge had its name squeezed into the remaining space
+            // and cut to "#전기전자공학...". requiredWidth lets it hang over instead, which is what
+            // the layout's own margins were already keeping clear.
+            val labelWidth = labelWidthDp(bubble.tag).dp
+            val labelHalfWidthPx = with(LocalDensity.current) { (labelWidth / 2).toPx() }
+            val labelHalfHeightPx = with(LocalDensity.current) { (LABEL_HEIGHT_DP.dp / 2).toPx() }
             Box(
                 modifier = Modifier
                     .offset {
@@ -204,8 +209,8 @@ private fun BubbleMap(
                             y = (originY + center.y * scale - labelHalfHeightPx).roundToInt(),
                         )
                     }
-                    .width(LABEL_WIDTH)
-                    .height(LABEL_HEIGHT),
+                    .requiredWidth(labelWidth)
+                    .requiredHeight(LABEL_HEIGHT_DP.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -277,6 +282,38 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
                             radius = circle.radius * scale,
                             center = centerPx,
                             style = Stroke(width = 3f),
+                        )
+                    }
+                }
+
+                // Which circle is which. Without these the drawing shows who falls where and never
+                // says what "where" is, leaving the reader to match the heading above against the
+                // arrangement by eye.
+                val anchors = vennLabelAnchors(circles)
+                circles.forEach { circle ->
+                    val anchor = anchors[circle.tag] ?: return@forEach
+                    val at = place(anchor)
+                    val tagWidth = labelWidthDp(circle.tag).dp
+                    val halfWidthPx = with(density) { (tagWidth / 2).toPx() }
+                    val halfHeightPx = with(density) { (TAG_LINE_HEIGHT / 2).toPx() }
+                    Box(
+                        modifier = Modifier
+                            .offset {
+                                IntOffset(
+                                    x = (at.x - halfWidthPx).roundToInt(),
+                                    y = (at.y - halfHeightPx).roundToInt(),
+                                )
+                            }
+                            .requiredWidth(tagWidth)
+                            .requiredHeight(TAG_LINE_HEIGHT),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Text(
+                            text = "#${circle.tag}",
+                            style = MaterialTheme.typography.labelMedium,
+                            color = primary,
+                            textAlign = TextAlign.Center,
+                            maxLines = 1,
                         )
                     }
                 }
@@ -353,10 +390,8 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
     }
 }
 
-private val LABEL_WIDTH = 96.dp
-
-/** Two lines of labelMedium: the tag and the member count. Matches BubbleLayout's own estimate. */
-private val LABEL_HEIGHT = 34.dp
+/** One line of labelMedium, for a circle's own name. */
+private val TAG_LINE_HEIGHT = 18.dp
 
 private const val NAME_SEPARATOR = "  "
 

@@ -43,6 +43,41 @@ fun vennBounds(circles: List<VennCircle>): VennBounds = VennBounds(
 )
 
 /** Fixed, readable layouts. A true Venn diagram is only drawable for 2 or 3 sets. */
+/**
+ * Where to write each circle's own name.
+ *
+ * The circles carry no labels of their own, so the drawing shows which people fall in which region
+ * without ever saying which region is which group — you had to read the heading above and work out
+ * the arrangement yourself. The name goes out towards that circle's own edge, away from the middle
+ * where the overlaps are, which lands it in the lobe that belongs to that group alone.
+ */
+fun vennLabelAnchors(circles: List<VennCircle>): Map<String, Offset> {
+    if (circles.isEmpty()) return emptyMap()
+    val middleX = circles.map { it.center.x }.average().toFloat()
+    val middleY = circles.map { it.center.y }.average().toFloat()
+
+    return circles.associate { circle ->
+        val outX = circle.center.x - middleX
+        val outY = circle.center.y - middleY
+        val reach = hypot(outX, outY)
+        // One circle has nowhere to go outwards; its own centre is as good as anywhere.
+        val anchor = if (reach < EPSILON) {
+            circle.center
+        } else {
+            Offset(
+                circle.center.x + outX / reach * circle.radius * LABEL_REACH,
+                circle.center.y + outY / reach * circle.radius * LABEL_REACH,
+            )
+        }
+        circle.tag to anchor
+    }
+}
+
+/** Far enough out to clear the overlaps, near enough in to stay inside the arc. */
+private const val LABEL_REACH = 0.72f
+
+private const val EPSILON = 1e-6f
+
 fun vennCircles(selected: List<GroupBubble>): List<VennCircle> = when (selected.size) {
     2 -> listOf(
         VennCircle(selected[0].tag, Offset(0.36f, 0.5f), 0.26f),

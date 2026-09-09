@@ -36,6 +36,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalContext
@@ -53,6 +54,7 @@ import com.persondic.ui.common.requirePersonDicApplication
 import java.util.UUID
 import kotlin.math.atan2
 import kotlin.math.cos
+import kotlin.math.hypot
 import kotlin.math.roundToInt
 import kotlin.math.sin
 
@@ -176,6 +178,7 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
         fun place(x: Float, y: Float) = Offset(originX + x * side, originY + y * side)
 
         val positions = graph.nodes.associate { it.personId to place(it.x, it.y) }
+        val routed = remember(graph) { routeEdges(graph.edges, graph.nodes, graph.nodeRadius) }
         // The layout sized the nodes to the rings it produced; drawing at any other size puts
         // circles back on top of each other or off the edge.
         val nodeRadiusPx = graph.nodeRadius * side
@@ -192,21 +195,41 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
                     }
                 },
         ) {
-            graph.edges.forEach { edge ->
+            routed.forEach { (edge, bow) ->
                 val from = positions[edge.fromPersonId] ?: return@forEach
                 val to = positions[edge.toPersonId] ?: return@forEach
 
-                // Stop the line at the edge of each circle so it does not run under the names.
-                val angle = atan2(to.y - from.y, to.x - from.x)
+                // The control point of a quadratic curve, pushed off the midpoint at right angles
+                // to the chord. A bow of zero puts it on the midpoint, which draws the straight
+                // line — so there is no separate case for the ordinary edge.
+                val chordX = to.x - from.x
+                val chordY = to.y - from.y
+                val chord = hypot(chordX, chordY).coerceAtLeast(1f)
+                val control = Offset(
+                    (from.x + to.x) / 2f + (-chordY / chord) * bow * side,
+                    (from.y + to.y) / 2f + (chordX / chord) * bow * side,
+                )
+
+                // Trim to the circles along the curve's own directions, not the chord's, or a
+                // bent line leaves its circle at a visible angle to where it was aimed.
+                val outAngle = atan2(control.y - from.y, control.x - from.x)
+                val inAngle = atan2(to.y - control.y, to.x - control.x)
                 val start = Offset(
-                    from.x + nodeRadiusPx * cos(angle),
-                    from.y + nodeRadiusPx * sin(angle),
+                    from.x + nodeRadiusPx * cos(outAngle),
+                    from.y + nodeRadiusPx * sin(outAngle),
                 )
                 val end = Offset(
-                    to.x - nodeRadiusPx * cos(angle),
-                    to.y - nodeRadiusPx * sin(angle),
+                    to.x - nodeRadiusPx * cos(inAngle),
+                    to.y - nodeRadiusPx * sin(inAngle),
                 )
-                drawLine(color = outline, start = start, end = end, strokeWidth = 2f)
+                drawPath(
+                    path = Path().apply {
+                        moveTo(start.x, start.y)
+                        quadraticBezierTo(control.x, control.y, end.x, end.y)
+                    },
+                    color = outline,
+                    style = Stroke(width = 2f),
+                )
 
                 if (edge.symmetric) {
                     // Plain dots on both ends: the label reads the same either way.
@@ -215,11 +238,11 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
                 } else {
                     drawCircle(color = outline, radius = 5f, center = start)
                     val head = ARROW_HEAD_PX
-                    listOf(angle + ARROW_SPREAD, angle - ARROW_SPREAD).forEach { side ->
+                    listOf(inAngle + ARROW_SPREAD, inAngle - ARROW_SPREAD).forEach { spread ->
                         drawLine(
                             color = outline,
                             start = end,
-                            end = Offset(end.x - head * cos(side), end.y - head * sin(side)),
+                            end = Offset(end.x - head * cos(spread), end.y - head * sin(spread)),
                             strokeWidth = 3f,
                         )
                     }
