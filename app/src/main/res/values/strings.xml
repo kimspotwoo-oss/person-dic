@@ -122,6 +122,8 @@
     <string name="briefing_section_knowledge">알아두기</string>
     <string name="briefing_section_sensitive_count">민감 정보 %1$d건</string>
     <string name="briefing_section_stale">확인 필요</string>
+    <string name="briefing_empty_title">아직 브리핑할 게 없습니다</string>
+    <string name="briefing_empty_body">만남을 기록하고 그 자리에서 알게 된 것을 남기면, 다음에 만나기 전 이 화면에 주의할 것·열린 약속·꺼낼 화제 순으로 모입니다.</string>
     <string name="briefing_record_interaction">만남 기록하기</string>
 
     <string name="interaction_log_title">만남 기록</string>

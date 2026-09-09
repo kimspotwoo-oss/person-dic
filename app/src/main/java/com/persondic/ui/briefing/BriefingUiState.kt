@@ -25,4 +25,21 @@ data class BriefingUiState(
     val knowledgeGroups: List<FactCategoryGroup> = emptyList(),
     val sensitiveFacts: List<Fact> = emptyList(),
     val staleFacts: List<Fact> = emptyList(),
-)
+) {
+    /**
+     * Every one of the seven sections is empty, so the screen has nothing to brief on.
+     *
+     * Sections hide themselves when empty, which is right, but for a person who has just been
+     * added that leaves a page with a button on it and nothing else — no way to tell an app that
+     * has nothing to say from one that has broken. Fixed information does not count here: a
+     * birthday is who someone is, not news about them.
+     */
+    val hasNothingToShow: Boolean
+        get() = cautionFacts.isEmpty() &&
+            openCommitmentGroups.isEmpty() &&
+            hookFacts.isEmpty() &&
+            recentInteractions.isEmpty() &&
+            knowledgeGroups.isEmpty() &&
+            sensitiveFacts.isEmpty() &&
+            staleFacts.isEmpty()
+}

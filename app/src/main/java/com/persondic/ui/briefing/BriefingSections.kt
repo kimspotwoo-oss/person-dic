@@ -36,6 +36,29 @@ internal fun SectionHeader(title: String) {
     )
 }
 
+/**
+ * Shown when there is nothing in any of the seven sections.
+ *
+ * Sections hide when empty, which is right, but a person added a minute ago then gets a page with
+ * one button on it — which reads as the screen having failed rather than as there being nothing
+ * to say yet. This says which, and what fills it.
+ */
+@Composable
+internal fun NothingYet() {
+    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 24.dp)) {
+        Text(
+            text = stringResource(R.string.briefing_empty_title),
+            style = MaterialTheme.typography.titleMedium,
+        )
+        Text(
+            text = stringResource(R.string.briefing_empty_body),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(top = 8.dp),
+        )
+    }
+}
+
 @Composable
 internal fun CautionSection(facts: List<Fact>) {
     Column {

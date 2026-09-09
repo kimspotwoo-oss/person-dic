@@ -88,6 +88,9 @@ fun BriefingScreen(
                     )
                 }
             }
+            if (uiState.hasNothingToShow) {
+                item(key = "empty") { NothingYet() }
+            }
             if (uiState.cautionFacts.isNotEmpty()) {
                 item(key = "section-caution") { CautionSection(uiState.cautionFacts) }
             }
