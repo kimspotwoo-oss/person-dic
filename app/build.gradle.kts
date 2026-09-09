@@ -39,7 +39,11 @@ android {
             signingConfig = signingConfigs.getByName("debug")
         }
         release {
-            isMinifyEnabled = false
+            // Release is shrunk. Turning this on the day before shipping is how a serializer
+            // goes missing and the backup file stops loading; CI builds the release variant on
+            // every push so a rule that stops working is a red build rather than a surprise.
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro",

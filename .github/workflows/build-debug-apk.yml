@@ -30,6 +30,14 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
+      # The release variant is shrunk by R8 and the debug one is not, so a keep rule that stops
+      # working shows up here and nowhere else. Unsigned: signing a real release needs a key that
+      # is deliberately not in this repository. This proves it builds — it does not prove it runs,
+      # so a release APK still has to be installed and its backup exported and re-imported before
+      # anything is published.
+      - name: Build release APK and bundle (R8)
+        run: ./gradlew assembleRelease bundleRelease --no-daemon --stacktrace
+
       - name: Upload APK as build artifact
         uses: actions/upload-artifact@v4
         with:

@@ -32,10 +32,13 @@ fun PersonAvatar(
                 .background(MaterialTheme.colorScheme.primaryContainer),
             contentAlignment = Alignment.Center,
         ) {
+            val initials = avatarInitials(name)
             Text(
-                text = name.take(1),
+                text = initials,
                 color = MaterialTheme.colorScheme.onPrimaryContainer,
-                fontSize = (size.value / 2.4f).sp,
+                // Two characters need the smaller of the two sizes to stay inside the circle.
+                fontSize = (size.value / if (initials.length >= 2) 3.0f else 2.4f).sp,
+                maxLines = 1,
             )
         }
     } else {
