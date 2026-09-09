@@ -49,6 +49,10 @@
     <string name="birthday_in_days_with_age">%1$d일\u00A0뒤 %2$d세</string>
 
     <string name="group_tags_edit">그룹 수정</string>
+    <string name="move_tag_move">고정 정보로 옮기기</string>
+    <string name="move_tag_title">#%1$s를 고정 정보로</string>
+    <string name="move_tag_hint">값은 \"%1$s\"입니다. 어떤 항목인지만 정해 주세요. 옮기면 이 그룹에서는 빠집니다.</string>
+    <string name="move_tag_confirm">옮기기</string>
     <string name="group_tags_none">그룹 없음</string>
     <string name="fixed_info_add">고정 정보 추가</string>
     <string name="fixed_info_quick_label">한 줄로 추가</string>
@@ -102,6 +106,8 @@
     <string name="person_detail_view_briefing">브리핑 보기</string>
     <string name="person_detail_tab_facts">사실</string>
     <string name="person_detail_tab_interactions">만남</string>
+    <string name="timeline_month">%1$d년 %2$d월</string>
+    <string name="timeline_facts_from_here">여기서 남긴 사실 %1$d개</string>
     <string name="person_detail_tab_commitments">약속</string>
     <string name="person_detail_tab_ties">관계</string>
     <string name="person_detail_ties_empty">아직 연결된 사람이 없습니다</string>

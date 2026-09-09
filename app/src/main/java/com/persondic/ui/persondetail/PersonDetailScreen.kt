@@ -42,7 +42,9 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonAttribute
+import com.persondic.data.model.Sensitivity
 import com.persondic.domain.TieView
+import com.persondic.domain.buildTimeline
 import com.persondic.ui.common.FixedInfoBlock
 import com.persondic.ui.common.SUGGESTED_ATTRIBUTE_LABELS
 import com.persondic.ui.common.PhotoPickerRow
@@ -77,6 +79,11 @@ fun PersonDetailScreen(
     val allAttributeLabels by viewModel.allAttributeLabels.collectAsStateWithLifecycle()
     val factSourceDates by viewModel.factSourceDates.collectAsStateWithLifecycle()
     val ties by viewModel.ties.collectAsStateWithLifecycle()
+    // Grouped here rather than in the ViewModel: it is a way of showing what is already loaded,
+    // and both inputs are already on screen.
+    val timeline = remember(interactions, factGroups) {
+        buildTimeline(interactions, factGroups.flatMap { it.facts })
+    }
     val otherPeople by viewModel.otherPeople.collectAsStateWithLifecycle()
     val allTieLabels by viewModel.allTieLabels.collectAsStateWithLifecycle()
 
@@ -87,6 +94,7 @@ fun PersonDetailScreen(
     var showFixedInfoDialog by rememberSaveable { mutableStateOf(false) }
     var showProfileDialog by rememberSaveable { mutableStateOf(false) }
     var showTagDialog by rememberSaveable { mutableStateOf(false) }
+    var movingTag by rememberSaveable { mutableStateOf<String?>(null) }
     var showAddTieDialog by rememberSaveable { mutableStateOf(false) }
     var actionMenuTie by remember { mutableStateOf<TieView?>(null) }
 
@@ -189,7 +197,7 @@ fun PersonDetailScreen(
                     onLongPress = { actionMenuFact = it },
                 )
                 1 -> interactionItems(
-                    interactions = interactions,
+                    months = timeline,
                     onOpen = { onOpenInteraction(personId, it.id) },
                 )
                 2 -> commitmentItems(
@@ -235,6 +243,27 @@ fun PersonDetailScreen(
             onDismiss = { showTagDialog = false },
             onAddTag = viewModel::addTag,
             onRemoveTag = viewModel::removeTag,
+            onMoveTag = { tag ->
+                showTagDialog = false
+                movingTag = tag
+            },
+        )
+    }
+
+    movingTag?.let { tag ->
+        MoveTagDialog(
+            tag = tag,
+            suggestedLabels = (allAttributeLabels + SUGGESTED_ATTRIBUTE_LABELS)
+                .distinct()
+                .filterNot { label -> attributes.any { it.label == label } },
+            onDismiss = { movingTag = null },
+            onConfirm = { label ->
+                // The entry first, then the tag: if the write failed halfway the fact should
+                // survive in the place it was being moved to rather than in neither.
+                viewModel.setAttribute(label, tag, Sensitivity.NORMAL)
+                viewModel.removeTag(tag)
+                movingTag = null
+            },
         )
     }
 

@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Interaction
+import com.persondic.domain.TimelineMonth
+import com.persondic.ui.common.relativeDateLabel
 import com.persondic.ui.common.commitmentStatusLabel
 import com.persondic.ui.common.directionLabel
 import com.persondic.ui.common.interactionKindLabel
@@ -24,37 +26,67 @@ import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 
-fun LazyListScope.interactionItems(interactions: List<Interaction>, onOpen: (Interaction) -> Unit) {
-    if (interactions.isEmpty()) {
+/**
+ * The meeting history as a timeline.
+ *
+ * Months are the structure, because when is what a person scans this by — the date used to be the
+ * last line of every row, which is the one place it cannot be scanned from. Each row leads with how
+ * long ago instead ("3주 전"), since that is the form the question takes.
+ */
+fun LazyListScope.interactionItems(
+    months: List<TimelineMonth>,
+    onOpen: (Interaction) -> Unit,
+) {
+    if (months.isEmpty()) {
         item(key = "interactions-empty") { EmptyTabMessage(R.string.person_detail_interactions_empty) }
         return
     }
-    items(interactions, key = { "interaction-${it.id}" }) { interaction ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { onOpen(interaction) }
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-        ) {
+    months.forEach { month ->
+        item(key = "month-${month.year}-${month.month}") {
             Text(
-                text = interaction.summary?.takeIf { it.isNotBlank() } ?: interactionKindLabel(interaction.kind),
-                style = MaterialTheme.typography.bodyLarge,
+                text = stringResource(R.string.timeline_month, month.year, month.month),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary,
+                modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 2.dp),
             )
-            interaction.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+        }
+        items(month.entries, key = { "interaction-${it.interaction.id}" }) { entry ->
+            val interaction = entry.interaction
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onOpen(interaction) }
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            ) {
                 Text(
-                    text = notes,
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-            val meta = listOfNotNull(interaction.place, formatDate(interaction.metAt)).joinToString(" · ")
-            if (meta.isNotEmpty()) {
-                Text(
-                    text = meta,
-                    style = MaterialTheme.typography.bodyMedium,
+                    text = listOfNotNull(
+                        relativeDateLabel(interaction.metAt),
+                        formatDate(interaction.metAt),
+                        interaction.place?.takeIf { it.isNotBlank() },
+                    ).joinToString(" · "),
+                    style = MaterialTheme.typography.labelMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+                Text(
+                    text = interaction.summary?.takeIf { it.isNotBlank() }
+                        ?: interactionKindLabel(interaction.kind),
+                    style = MaterialTheme.typography.bodyLarge,
+                )
+                interaction.notes?.takeIf { it.isNotBlank() }?.let { notes ->
+                    Text(
+                        text = notes,
+                        style = MaterialTheme.typography.bodyMedium,
+                        maxLines = 2,
+                        overflow = TextOverflow.Ellipsis,
+                    )
+                }
+                if (entry.factCount > 0) {
+                    Text(
+                        text = stringResource(R.string.timeline_facts_from_here, entry.factCount),
+                        style = MaterialTheme.typography.labelMedium,
+                        color = MaterialTheme.colorScheme.primary,
+                    )
+                }
             }
         }
     }

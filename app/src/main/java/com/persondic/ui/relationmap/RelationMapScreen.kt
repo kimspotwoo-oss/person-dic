@@ -246,6 +246,8 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
         val diameter = with(LocalDensity.current) { (nodeRadiusPx * 2).toDp() }
         graph.nodes.forEach { node ->
             val centre = positions[node.personId] ?: return@forEach
+            val label = graphNodeLabel(node.name, diameter.value)
+            if (label.isEmpty()) return@forEach
             Box(
                 modifier = Modifier
                     .offset {
@@ -258,7 +260,7 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
-                    text = node.name,
+                    text = label,
                     style = MaterialTheme.typography.labelSmall,
                     textAlign = TextAlign.Center,
                     maxLines = 2,

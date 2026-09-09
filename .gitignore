@@ -8,3 +8,11 @@
 .externalNativeBuild
 .cxx
 /app/build
+
+# Release signing keys never go in here. Losing one means the app can never be updated again;
+# publishing one means anybody can sign as this app. debug.keystore is the deliberate exception —
+# it signs test builds only and its password is the conventional public "android".
+*.jks
+*.keystore
+!debug.keystore
+key.properties
