@@ -13,7 +13,7 @@ import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.domain.TieView
-import com.persondic.domain.describeTie
+import com.persondic.domain.describeTies
 import com.persondic.ui.common.FactCategoryGroup
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -73,8 +73,7 @@ class PersonDetailViewModel(
         repository.observePeopleIncludingSelf(),
     ) { ties, people ->
         val names = people.associate { it.id to it.displayName }
-        ties.mapNotNull { tie -> describeTie(tie, personId) { names[it] } }
-            .sortedBy { it.text }
+        describeTies(ties, personId) { names[it] }.sortedBy { it.text }
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** Everyone else, for picking the other end of a tie. Includes me — I am a valid far end. */
@@ -102,8 +101,9 @@ class PersonDetailViewModel(
         viewModelScope.launch { repository.addTie(personId, otherPersonId, label, symmetric) }
     }
 
-    fun removeTie(tieId: UUID) {
-        viewModelScope.launch { repository.removeTie(tieId) }
+    /** Every stored tie the row stands for, or the duplicate it hid simply takes its place. */
+    fun removeTie(tie: TieView) {
+        viewModelScope.launch { tie.allTieIds.forEach { repository.removeTie(it) } }
     }
 
     fun updateProfile(displayName: String, alias: String?, metStory: String?) {

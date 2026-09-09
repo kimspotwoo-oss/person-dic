@@ -223,7 +223,7 @@ fun PersonDetailScreen(
             onDismiss = { actionMenuTie = null },
             onConfirm = {
                 actionMenuTie = null
-                viewModel.removeTie(tie.tieId)
+                viewModel.removeTie(tie)
             },
         )
     }

@@ -2,6 +2,7 @@ package com.persondic.ui.relationmap
 
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.Tie
+import com.persondic.domain.dedupeTies
 import java.util.UUID
 import kotlin.math.cos
 import kotlin.math.sin
@@ -58,7 +59,9 @@ fun buildRelationGraph(
     if (people.isEmpty()) return RelationGraph()
 
     val known = people.mapTo(mutableSetOf()) { it.id }
-    val edges = ties
+    // The same friendship entered from both people's screens is two rows and was two lines drawn
+    // exactly on top of each other.
+    val edges = dedupeTies(ties)
         .filter { it.fromPersonId in known && it.toPersonId in known }
         .filter { visibleLabels == null || it.label in visibleLabels }
         .map { GraphEdge(it.id, it.fromPersonId, it.toPersonId, it.label, it.symmetric) }

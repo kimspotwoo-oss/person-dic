@@ -91,6 +91,16 @@ class RelationGraphTest {
         assertNoOverlaps(buildRelationGraph(listOf(me) + people, ties, visibleLabels = setOf("친구")))
     }
 
+    @Test
+    fun aFriendshipEnteredFromBothSidesIsOneLine() {
+        val graph = buildRelationGraph(
+            listOf(me, minjun),
+            listOf(tie(me, minjun, "친구", true), tie(minjun, me, "친구", true)),
+        )
+
+        assertEquals(1, graph.edges.size)
+    }
+
     private fun assertNoOverlaps(graph: RelationGraph) {
         val nodes = graph.nodes
         for (i in nodes.indices) {
