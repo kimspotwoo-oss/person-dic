@@ -7,7 +7,7 @@
 | | |
 |---|---|
 | `applicationId` | `com.persondic` — **한 번 게시하면 영구히 못 바꿉니다** |
-| 버전 | `versionCode = GITHUB_RUN_NUMBER`, `versionName = "0.1.<run>"` |
+| 버전 | `versionName = "0.1.0"` (손으로 정함), `versionCode = GITHUB_RUN_NUMBER` |
 | R8 (축소·난독화) | 켜짐. CI가 푸시마다 릴리스 APK와 AAB를 빌드 |
 | 릴리스 서명 | **없음.** `debug.keystore`는 테스트 전용 |
 | 개인정보 처리방침 | `docs/privacy-policy.md` 초안 — 연락처 미기재 |
@@ -62,12 +62,12 @@ CI는 이 넷을 못 합니다.
 
 ## 제가 할 수 있는 것 — 말씀만 하시면
 
-- [ ] CI에 릴리스 서명 붙이기 (GitHub Secrets에서 키 읽기)
-- [ ] `versionName`을 수동 관리로 바꾸기 — 스토어 버전은 `0.1.<CI 실행번호>`처럼
-      빌드마다 튀면 안 됩니다. `versionName = "1.0.0"` 같은 고정값 + `versionCode`만 자동 증가
-- [ ] 스토어 등록 문구 초안 (제목·짧은 설명·전체 설명)
-- [ ] 스크린샷 찍는 순서 정리 (Play는 최소 2장, 권장 4~8장)
-- [ ] 데이터 보안 양식 답변 정리 — `docs/privacy-policy.md` 하단에 이미 있음
+- [x] `versionName`을 수동 관리로 — `app/build.gradle.kts`의 `releaseVersion`.
+      출시할 때 이 값을 올리세요. `versionCode`는 CI 실행번호가 계속 올려줍니다
+- [x] 스토어 등록 문구 초안 — `docs/store-listing.md`
+- [x] 스크린샷 순서 — 같은 문서. **가짜 데이터로 찍으세요**
+- [x] 데이터 보안 양식 답변 — `docs/privacy-policy.md` 하단
+- [ ] CI에 릴리스 서명 붙이기 — 키를 만드시면 그때
 
 ---
 

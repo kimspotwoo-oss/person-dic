@@ -13,7 +13,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -279,7 +279,9 @@ private fun RelationCanvas(graph: RelationGraph, onPersonClick: (UUID) -> Unit) 
                             y = (centre.y - nodeRadiusPx).roundToInt(),
                         )
                     }
-                    .size(diameter),
+                    // Required so the box is the node's size wherever the node sits, rather than
+                    // the node's size minus whatever the parent has left at that edge.
+                    .requiredSize(diameter),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(

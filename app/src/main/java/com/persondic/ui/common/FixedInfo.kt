@@ -6,7 +6,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -111,11 +111,16 @@ fun FixedInfoBlock(
 @Composable
 private fun FixedInfoRow(label: String, value: String) {
     Row(modifier = Modifier.fillMaxWidth()) {
+        // A minimum rather than a fixed width, so the labels line up in the ordinary case and a
+        // long one takes the room it needs instead of wrapping. Since a tag can be moved across
+        // and become a label, "전기전자공학부" is a label this has to handle, and at 72dp it broke
+        // over two lines and pushed its own value out of line with the rows above it.
         Text(
             text = label,
             style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.width(72.dp),
+            maxLines = 1,
+            modifier = Modifier.widthIn(min = 72.dp),
         )
         Text(
             text = value,

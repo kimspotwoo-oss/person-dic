@@ -169,7 +169,9 @@ internal fun RecentInteractionsSection(interactions: List<Interaction>) {
         SectionHeader(stringResource(R.string.briefing_section_recent_interactions))
         interactions.forEach { interaction ->
             val summary = interaction.summary?.takeIf { it.isNotBlank() } ?: interactionKindLabel(interaction.kind)
-            Text(
+            // A meeting summary is written by the same hand as a fact and runs just as long, so it
+            // is on the same thirty-second path and gets the same treatment.
+            ScannableBody(
                 text = "$summary · ${relativeDateLabel(interaction.metAt)}",
                 style = MaterialTheme.typography.bodyLarge,
                 modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),

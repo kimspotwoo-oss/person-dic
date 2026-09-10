@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.requiredWidth
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -343,7 +344,11 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
                                         y = (anchorPx.y - heightPx / 2f).roundToInt(),
                                     )
                                 }
-                                .size(width = widthDp, height = heightDp)
+                                // Required, like the bubble names: a plain size is capped by
+                                // what is left of the parent, so a region near the edge of the
+                                // diagram got a narrower box than the packing had measured for
+                                // and lost names the packing thought would fit.
+                                .requiredSize(width = widthDp, height = heightDp)
                                 .clipToBounds(),
                             contentAlignment = Alignment.Center,
                         ) {

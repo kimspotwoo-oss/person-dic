@@ -11,6 +11,11 @@ plugins {
 // over another ("package conflicts"), so the debug key is checked in and used explicitly.
 val buildNumber = (System.getenv("GITHUB_RUN_NUMBER") ?: "1").toInt()
 
+// The version people read, set by hand. It used to be derived from the CI run number, which meant
+// the app called itself 0.1.22 because twenty-two builds had happened — a number that says nothing
+// about what changed and marches on while the app stands still. Store listings quote this.
+val releaseVersion = "0.1.0"
+
 android {
     namespace = "com.persondic"
     compileSdk = 36
@@ -19,8 +24,10 @@ android {
         applicationId = "com.persondic"
         minSdk = 26
         targetSdk = 36
+        // The build number keeps driving versionCode, which only has to increase and never has to
+        // mean anything; Play refuses an upload that does not raise it.
         versionCode = buildNumber
-        versionName = "0.1.$buildNumber"
+        versionName = releaseVersion
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
