@@ -78,7 +78,7 @@ fun MeetingWizardScreen(
     onClose: () -> Unit,
     onSaved: () -> Unit,
 ) {
-    val application = requirePersonDicApplication()
+    val application = LocalContext.current.requirePersonDicApplication()
     val viewModel: MeetingWizardViewModel = viewModel(
         factory = ViewModelFactory { MeetingWizardViewModel(application.repository) },
     )
