@@ -21,7 +21,6 @@ import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -45,8 +44,6 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.persondic.R
-import com.persondic.domain.Reminder
-import com.persondic.domain.ReminderKind
 import com.persondic.ui.common.PersonAvatar
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.relativeDaysLabel
@@ -169,16 +166,6 @@ fun PersonListScreen(
                     // last person instead of below them.
                     contentPadding = PaddingValues(bottom = 88.dp),
                 ) {
-                    // Hidden while searching: these answer "who should I get in touch with",
-                    // which is not the question being asked once a name has been typed.
-                    if (uiState.searchQuery.isBlank() && uiState.reminders.isNotEmpty()) {
-                        item(key = "reminders") {
-                            ReminderBlock(
-                                reminders = uiState.reminders,
-                                onPersonClick = onPersonClick,
-                            )
-                        }
-                    }
                     uiState.groups.forEach { group ->
                         if (group.label != null) {
                             item(key = "header-${group.label}") {
@@ -201,62 +188,6 @@ fun PersonListScreen(
             }
         }
     }
-}
-
-/**
- * The dated reasons to get in touch: commitments that are due and birthdays that are close.
- *
- * Only things with a date on them. Design principle 1 rules out ranking people, and a list of
- * "who you have neglected" would be exactly that; a missed deadline is a fact instead.
- */
-@Composable
-private fun ReminderBlock(reminders: List<Reminder>, onPersonClick: (UUID) -> Unit) {
-    Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-        Text(
-            text = stringResource(R.string.person_list_reminders_title),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(bottom = 4.dp),
-        )
-        reminders.forEach { reminder ->
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onPersonClick(reminder.personId) }
-                    .padding(vertical = 6.dp),
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                Text(
-                    text = reminderWhen(reminder),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = if (reminder.kind == ReminderKind.COMMITMENT_OVERDUE) {
-                        MaterialTheme.colorScheme.error
-                    } else {
-                        MaterialTheme.colorScheme.onSurfaceVariant
-                    },
-                    modifier = Modifier.width(76.dp),
-                )
-                Text(
-                    text = when (reminder.kind) {
-                        ReminderKind.BIRTHDAY ->
-                            stringResource(R.string.person_list_reminder_birthday, reminder.personName)
-                        else -> "${reminder.personName} · ${reminder.body}"
-                    },
-                    style = MaterialTheme.typography.bodyMedium,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-            }
-        }
-        HorizontalDivider(modifier = Modifier.padding(top = 8.dp))
-    }
-}
-
-@Composable
-private fun reminderWhen(reminder: Reminder): String = when {
-    reminder.daysFromToday < 0 -> stringResource(R.string.person_list_reminder_overdue, -reminder.daysFromToday)
-    reminder.daysFromToday == 0L -> stringResource(R.string.person_list_reminder_today)
-    else -> stringResource(R.string.person_list_reminder_in_days, reminder.daysFromToday)
 }
 
 @Composable

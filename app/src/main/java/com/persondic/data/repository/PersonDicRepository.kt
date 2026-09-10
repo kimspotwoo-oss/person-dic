@@ -204,6 +204,35 @@ class PersonDicRepository(
 
     suspend fun updateInteraction(interaction: Interaction) = interactionDao.update(interaction)
 
+    /**
+     * Writes down a meeting with however many people were at it, in one go.
+     *
+     * All of it or none of it. A meeting saved without its attendees is a row nobody can find
+     * again, and facts saved without the meeting they came from lose the one thing that says when
+     * they were true — so the whole lot goes in a transaction. People invented during the flow are
+     * inserted here too, which is why abandoning it leaves nothing behind.
+     */
+    suspend fun recordMeeting(
+        interaction: Interaction,
+        attendeeIds: List<UUID>,
+        newPeople: List<Person> = emptyList(),
+        facts: List<Fact> = emptyList(),
+    ) = database.withTransaction {
+        newPeople.forEach { personDao.insert(it) }
+        interactionDao.insert(interaction)
+        attendeeIds.distinct().forEach { personId ->
+            interactionDao.insertAttendance(Attendance(interactionId = interaction.id, personId = personId))
+        }
+        facts.forEach { fact ->
+            factDao.insert(
+                fact.copy(
+                    expiresOn = fact.expiresOn
+                        ?: ExpirationCalculator.calculateExpiresOn(fact.volatility, fact.assertedOn),
+                ),
+            )
+        }
+    }
+
     suspend fun recordInteraction(interaction: Interaction, personId: UUID) {
         interactionDao.insert(interaction)
         interactionDao.insertAttendance(Attendance(interactionId = interaction.id, personId = personId))

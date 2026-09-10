@@ -3,6 +3,7 @@ package com.persondic.ui.nav
 import java.util.UUID
 
 object Routes {
+    const val MAIN = "main"
     const val PERSON_LIST = "personList"
     const val PERSON_ADD = "personAdd"
     const val PERSON_DETAIL = "personDetail/{personId}"
@@ -12,6 +13,7 @@ object Routes {
     const val GROUP_MAP = "groupMap"
     const val RELATION_MAP = "relationMap"
     const val QUICK_ADD = "quickAdd"
+    const val MEETING = "meeting"
     const val BACKUP = "backup"
 
     fun personDetail(personId: UUID): String = "personDetail/$personId"

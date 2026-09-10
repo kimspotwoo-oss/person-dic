@@ -12,8 +12,10 @@ import com.persondic.ui.briefing.BriefingScreen
 import com.persondic.ui.factedit.FactEditScreen
 import com.persondic.ui.groupmap.GroupMapScreen
 import com.persondic.ui.interactionlog.InteractionLogScreen
+import com.persondic.ui.meeting.MeetingWizardScreen
 import com.persondic.ui.persondetail.PersonDetailScreen
 import com.persondic.ui.personadd.PersonAddScreen
+import com.persondic.ui.home.MainScreen
 import com.persondic.ui.personlist.PersonListScreen
 import com.persondic.ui.relationmap.RelationMapScreen
 import com.persondic.ui.quickadd.QuickAddScreen
@@ -21,7 +23,18 @@ import java.util.UUID
 
 @Composable
 fun PersonDicNavHost(navController: NavHostController = rememberNavController()) {
-    NavHost(navController = navController, startDestination = Routes.PERSON_LIST) {
+    NavHost(navController = navController, startDestination = Routes.MAIN) {
+        composable(Routes.MAIN) {
+            MainScreen(
+                onRecordMeeting = { navController.navigate(Routes.MEETING) },
+                onPersonClick = { navController.navigate(Routes.personDetail(it)) },
+                onGroupMapClick = { navController.navigate(Routes.GROUP_MAP) },
+                onRelationMapClick = { navController.navigate(Routes.RELATION_MAP) },
+                onQuickAddClick = { navController.navigate(Routes.QUICK_ADD) },
+                onBackupClick = { navController.navigate(Routes.BACKUP) },
+                onAddPersonClick = { navController.navigate(Routes.PERSON_ADD) },
+            )
+        }
         composable(Routes.PERSON_LIST) {
             PersonListScreen(
                 onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
@@ -50,6 +63,12 @@ fun PersonDicNavHost(navController: NavHostController = rememberNavController())
             RelationMapScreen(
                 onBack = { navController.popBackStack() },
                 onPersonClick = { personId -> navController.navigate(Routes.personDetail(personId)) },
+            )
+        }
+        composable(Routes.MEETING) {
+            MeetingWizardScreen(
+                onClose = { navController.popBackStack() },
+                onSaved = { navController.popBackStack() },
             )
         }
         composable(Routes.QUICK_ADD) {

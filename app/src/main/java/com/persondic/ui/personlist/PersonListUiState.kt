@@ -1,7 +1,6 @@
 package com.persondic.ui.personlist
 
 import com.persondic.data.local.entity.Person
-import com.persondic.domain.Reminder
 
 data class PersonListItem(
     val person: Person,
@@ -27,7 +26,6 @@ data class PersonListUiState(
     val sort: PersonSort = PersonSort.NAME,
     val searchQuery: String = "",
     val groups: List<PersonGroup> = emptyList(),
-    val reminders: List<Reminder> = emptyList(),
 ) {
     val isEmpty: Boolean get() = groups.all { it.people.isEmpty() }
 }

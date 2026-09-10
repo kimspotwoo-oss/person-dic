@@ -6,7 +6,6 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Person
 import com.persondic.data.local.entity.PersonGroupTag
 import com.persondic.data.repository.PersonDicRepository
-import com.persondic.domain.buildReminders
 import com.persondic.domain.distinguishingTags
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -70,7 +69,6 @@ class PersonListViewModel(
                 sort = inputs.options.sort,
                 searchQuery = inputs.query,
                 groups = buildGroups(sortItems(items, inputs.options.sort), inputs.options.groupByTag),
-                reminders = buildReminders(inputs.people, inputs.openCommitments),
             )
         }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), PersonListUiState())
