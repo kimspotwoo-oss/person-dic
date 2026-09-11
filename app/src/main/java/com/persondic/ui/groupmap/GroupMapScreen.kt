@@ -192,6 +192,7 @@ private fun BubbleMap(
             }
         }
 
+        val labelDensity = LocalDensity.current
         bubbles.forEach { bubble ->
             val center = positions[bubble.tag] ?: return@forEach
             // Exactly the width the layout reserved for this name, so the two agree — and required
@@ -199,9 +200,17 @@ private fun BubbleMap(
             // the parent, so a bubble near an edge had its name squeezed into the remaining space
             // and cut to "#전기전자공학...". requiredWidth lets it hang over instead, which is what
             // the layout's own margins were already keeping clear.
-            val labelWidth = labelWidthDp(bubble.tag).dp
-            val labelHalfWidthPx = with(LocalDensity.current) { (labelWidth / 2).toPx() }
-            val labelHalfHeightPx = with(LocalDensity.current) { (LABEL_HEIGHT_DP.dp / 2).toPx() }
+            //
+            // Both dimensions are inflated by the reader's font-size setting. Without this, a
+            // phone with enlarged system text renders every glyph bigger than the fixed dp this
+            // box was sized for, and — since the box no longer yields to the parent — the text
+            // wraps inside its own required space instead: every tag truncated, even a three-
+            // character one, which is what an unscaled box looks like under an enlarged font.
+            val fontScale = labelDensity.fontScale
+            val labelWidth = (labelWidthDp(bubble.tag) * fontScale).dp
+            val labelHeight = LABEL_HEIGHT_DP.dp * fontScale
+            val labelHalfWidthPx = with(labelDensity) { (labelWidth / 2).toPx() }
+            val labelHalfHeightPx = with(labelDensity) { (labelHeight / 2).toPx() }
             Box(
                 modifier = Modifier
                     .offset {
@@ -211,7 +220,7 @@ private fun BubbleMap(
                         )
                     }
                     .requiredWidth(labelWidth)
-                    .requiredHeight(LABEL_HEIGHT_DP.dp),
+                    .requiredHeight(labelHeight),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
@@ -244,14 +253,28 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
         fun place(point: Offset) =
             Offset((point.x - bounds.minX) * scale, (point.y - bounds.minY) * scale)
 
+        // How much of a circle-only region's own box its name needs, in the same normalized units
+        // as the box itself — inflated by the reader's font size for the same reason the bubble
+        // map's own labels are (see BubbleMap below), then converted through real pixels rather
+        // than assumed to scale evenly with the diagram.
+        val tagStripHeight = with(density) { (TAG_LINE_HEIGHT * density.fontScale).toPx() } / scale
+
+        // One split per region, up front: a circle-only region gives up a strip at the top for its
+        // own name and packNames gets whatever is left in the very same box; an overlap region
+        // is unaffected and keeps its box whole. Splitting one rectangle instead of computing the
+        // tag's spot and the names' box from two separate formulas is what keeps them from landing
+        // on each other — see splitOffTagStrip.
+        val placements = regions.associateWith { region -> splitOffTagStrip(region, tagStripHeight) }
+
         val packedByRegion = filled.associate { region ->
-            val widthDp = with(density) { (region.box.width * scale).toDp() }
-            val heightDp = with(density) { (region.box.height * scale).toDp() }
+            val box = placements.getValue(region).namesBox
+            val widthDp = with(density) { (box.width * scale).toDp() }
+            val heightDp = with(density) { (box.height * scale).toDp() }
             // Dividing by the font scale is what keeps the estimate honest when the reader has
             // text enlarged: the box is fixed, so the room has to shrink instead.
             val fontScale = density.fontScale
             val names = region.memberIds.mapNotNull { uiState.peopleById[it]?.displayName }
-            region.label to packNames(names, widthDp.value / fontScale, heightDp.value / fontScale)
+            region.label to RegionNamesLayout(box, packNames(names, widthDp.value / fontScale, heightDp.value / fontScale))
         }
 
         Column {
@@ -289,14 +312,17 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
 
                 // Which circle is which. Without these the drawing shows who falls where and never
                 // says what "where" is, leaving the reader to match the heading above against the
-                // arrangement by eye.
-                val anchors = vennLabelAnchors(circles)
-                circles.forEach { circle ->
-                    val anchor = anchors[circle.tag] ?: return@forEach
-                    val at = place(anchor)
-                    val tagWidth = labelWidthDp(circle.tag).dp
+                // arrangement by eye. Every circle gets one regardless of whether anyone falls in
+                // its exclusive lobe — if everybody with this tag also has the other one, the lobe
+                // is empty but the circle still needs a name.
+                regions.forEach { region ->
+                    val tag = region.exclusiveTag ?: return@forEach
+                    val placement = placements.getValue(region)
+                    val at = place(placement.anchor)
+                    val tagWidth = (labelWidthDp(tag) * density.fontScale).dp
+                    val tagHeight = TAG_LINE_HEIGHT * density.fontScale
                     val halfWidthPx = with(density) { (tagWidth / 2).toPx() }
-                    val halfHeightPx = with(density) { (TAG_LINE_HEIGHT / 2).toPx() }
+                    val halfHeightPx = with(density) { (tagHeight / 2).toPx() }
                     Box(
                         modifier = Modifier
                             .offset {
@@ -306,11 +332,11 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
                                 )
                             }
                             .requiredWidth(tagWidth)
-                            .requiredHeight(TAG_LINE_HEIGHT),
+                            .requiredHeight(tagHeight),
                         contentAlignment = Alignment.Center,
                     ) {
                         Text(
-                            text = "#${circle.tag}",
+                            text = "#$tag",
                             style = MaterialTheme.typography.labelMedium,
                             color = primary,
                             textAlign = TextAlign.Center,
@@ -320,12 +346,14 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
                 }
 
                 filled.forEach { region ->
-                    val packed = packedByRegion[region.label] ?: return@forEach
-                    val widthPx = region.box.width * scale
-                    val heightPx = region.box.height * scale
+                    val layout = packedByRegion[region.label] ?: return@forEach
+                    val packed = layout.packed
+                    val box = layout.box
+                    val widthPx = box.width * scale
+                    val heightPx = box.height * scale
                     val widthDp = with(density) { widthPx.toDp() }
                     val heightDp = with(density) { heightPx.toDp() }
-                    val anchorPx = place(region.box.center)
+                    val anchorPx = place(box.center)
                     val overflow = stringResource(R.string.group_map_more_members, packed.hidden)
                     val text = buildString {
                         append(packed.shown.joinToString(NAME_SEPARATOR))
@@ -372,7 +400,7 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
             // the drawing has already shown every one of them; that was the same list printed
             // twice, one above the other.
             filled.forEach { region ->
-                val packed = packedByRegion[region.label]
+                val packed = packedByRegion[region.label]?.packed
                 Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 6.dp)) {
                     Text(
                         text = "${region.label} (${region.memberIds.size})",
@@ -397,6 +425,9 @@ private fun VennSection(selected: List<GroupBubble>, uiState: GroupMapUiState) {
 
 /** One line of labelMedium, for a circle's own name. */
 private val TAG_LINE_HEIGHT = 18.dp
+
+/** What a region's own name and its packed member names ended up sharing one box to fit into. */
+private data class RegionNamesLayout(val box: RegionBox, val packed: PackedNames)
 
 private const val NAME_SEPARATOR = "  "
 

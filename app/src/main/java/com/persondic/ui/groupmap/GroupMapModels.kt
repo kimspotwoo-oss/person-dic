@@ -22,4 +22,6 @@ data class VennRegion(
     val label: String,
     val memberIds: List<UUID>,
     val box: RegionBox,
+    /** The one tag this region belongs to alone, or null when it is an overlap of several. */
+    val exclusiveTag: String? = null,
 )

@@ -43,40 +43,39 @@ fun vennBounds(circles: List<VennCircle>): VennBounds = VennBounds(
 )
 
 /** Fixed, readable layouts. A true Venn diagram is only drawable for 2 or 3 sets. */
+/** Where a circle's own name goes, and the room left over in the same box for its names. */
+data class TagPlacement(val anchor: Offset, val namesBox: RegionBox)
+
 /**
- * Where to write each circle's own name.
+ * Splits a circle's own-only region into a strip for its name and whatever space is left for the
+ * people written inside it.
  *
- * The circles carry no labels of their own, so the drawing shows which people fall in which region
- * without ever saying which region is which group — you had to read the heading above and work out
- * the arrangement yourself. The name goes out towards that circle's own edge, away from the middle
- * where the overlaps are, which lands it in the lobe that belongs to that group alone.
+ * The circles carry no labels of their own, so without this the drawing shows which people fall in
+ * which region without ever saying which region is which group. An earlier version picked the tag's
+ * spot independently — a point out towards the circle's own edge — while the names were packed into
+ * the largest rectangle regionBox could find in the very same area. Two formulas guessing at the
+ * same rectangle is how "#고려대학교" ended up printed on top of 백진훈's name: both landed in the
+ * one place a circle's exclusive lobe actually has room. Cutting the strip off the top of the one
+ * rectangel regionBox already computed, and handing packNames what's left, means there is only one
+ * rectangle to keep straight, not two independent guesses at it.
+ *
+ * A region that belongs to more than one tag ([VennRegion.exclusiveTag] is null — an overlap) needs
+ * no name of its own and keeps its box whole.
  */
-fun vennLabelAnchors(circles: List<VennCircle>): Map<String, Offset> {
-    if (circles.isEmpty()) return emptyMap()
-    val middleX = circles.map { it.center.x }.average().toFloat()
-    val middleY = circles.map { it.center.y }.average().toFloat()
-
-    return circles.associate { circle ->
-        val outX = circle.center.x - middleX
-        val outY = circle.center.y - middleY
-        val reach = hypot(outX, outY)
-        // One circle has nowhere to go outwards; its own centre is as good as anywhere.
-        val anchor = if (reach < EPSILON) {
-            circle.center
-        } else {
-            Offset(
-                circle.center.x + outX / reach * circle.radius * LABEL_REACH,
-                circle.center.y + outY / reach * circle.radius * LABEL_REACH,
-            )
-        }
-        circle.tag to anchor
+fun splitOffTagStrip(region: VennRegion, tagStripHeight: Float): TagPlacement {
+    if (region.exclusiveTag == null || tagStripHeight <= 0f || tagStripHeight >= region.box.height) {
+        return TagPlacement(anchor = region.box.center, namesBox = region.box)
     }
+    val top = region.box.center.y - region.box.height / 2f
+    return TagPlacement(
+        anchor = Offset(region.box.center.x, top + tagStripHeight / 2f),
+        namesBox = RegionBox(
+            center = Offset(region.box.center.x, region.box.center.y + tagStripHeight / 2f),
+            width = region.box.width,
+            height = region.box.height - tagStripHeight,
+        ),
+    )
 }
-
-/** Far enough out to clear the overlaps, near enough in to stay inside the arc. */
-private const val LABEL_REACH = 0.72f
-
-private const val EPSILON = 1e-6f
 
 fun vennCircles(selected: List<GroupBubble>): List<VennCircle> = when (selected.size) {
     2 -> listOf(
@@ -109,10 +108,12 @@ fun vennRegions(selected: List<GroupBubble>): List<VennRegion> {
         .sortedBy { mask -> Integer.bitCount(mask) }
         .mapNotNull { mask ->
             val box = regionBox(circles, mask, bounds) ?: return@mapNotNull null
+            val tagsInMask = selected.indices.filter { (mask shr it) and 1 == 1 }.map { selected[it].tag }
             VennRegion(
                 label = regionLabel(selected, mask),
                 memberIds = union.filter { id -> membershipMask(selected, id) == mask },
                 box = box,
+                exclusiveTag = tagsInMask.singleOrNull(),
             )
         }
 }
