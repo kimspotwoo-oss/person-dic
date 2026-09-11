@@ -1,6 +1,7 @@
 package com.persondic.ui.meeting
 
 import android.app.DatePickerDialog
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -9,11 +10,13 @@ import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ArrowBack
@@ -30,6 +33,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
@@ -41,6 +45,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
@@ -55,6 +60,7 @@ import com.persondic.domain.DraftFact
 import com.persondic.domain.MeetingDraft
 import com.persondic.domain.MeetingStep
 import com.persondic.ui.common.PersonAvatar
+import com.persondic.ui.common.ScannableBody
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.categoryLabel
 import com.persondic.ui.common.requirePersonDicApplication
@@ -241,9 +247,15 @@ private fun WhoStep(
             }
             items(matches, key = { "person-${it.id}" }) { person ->
                 val selected = person.id in draft.attendeeIds
+                // A checkmark alone is easy to miss while scrolling a long list to pick several
+                // people — tapping an already-selected row again silently drops them, and nothing
+                // on screen changed enough to notice. The whole row now tints, not just one icon.
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
+                        .background(
+                            if (selected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent,
+                        )
                         .clickable { onToggle(person.id) }
                         .padding(horizontal = 16.dp, vertical = 10.dp),
                     verticalAlignment = Alignment.CenterVertically,
@@ -252,6 +264,11 @@ private fun WhoStep(
                     Text(
                         text = person.displayName,
                         style = MaterialTheme.typography.bodyLarge,
+                        color = if (selected) {
+                            MaterialTheme.colorScheme.onPrimaryContainer
+                        } else {
+                            MaterialTheme.colorScheme.onSurface
+                        },
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
                         modifier = Modifier
@@ -262,7 +279,7 @@ private fun WhoStep(
                         Icon(
                             imageVector = Icons.Default.Check,
                             contentDescription = stringResource(R.string.meeting_who_selected),
-                            tint = MaterialTheme.colorScheme.primary,
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         )
                     }
                 }
@@ -360,7 +377,13 @@ private fun SummaryStep(
     onSummaryChange: (String) -> Unit,
     onNotesChange: (String) -> Unit,
 ) {
-    Column(modifier = Modifier.fillMaxSize()) {
+    // Scrollable because the notes field below no longer stops growing — a fixed box was cutting
+    // off exactly the kind of several-sentence memo people actually write here.
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .verticalScroll(rememberScrollState()),
+    ) {
         StepHint(stringResource(R.string.meeting_summary_hint))
         OutlinedTextField(
             value = draft.summary,
@@ -377,7 +400,7 @@ private fun SummaryStep(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
-                .height(160.dp),
+                .heightIn(min = 160.dp),
             label = { Text(stringResource(R.string.interaction_field_notes)) },
         )
     }
@@ -397,6 +420,34 @@ private fun FactsStep(
 
     LazyColumn(modifier = Modifier.fillMaxSize()) {
         item(key = "hint") { StepHint(stringResource(R.string.meeting_facts_hint)) }
+
+        // What was written down two screens ago, since a fact here is often something the
+        // conversation already covered — without this, writing it twice was the only way to see
+        // both at once.
+        if (draft.notes.isNotBlank()) {
+            item(key = "notes-recap") {
+                Surface(
+                    color = MaterialTheme.colorScheme.surfaceVariant,
+                    shape = MaterialTheme.shapes.small,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp, vertical = 4.dp),
+                ) {
+                    Column(modifier = Modifier.padding(12.dp)) {
+                        Text(
+                            text = stringResource(R.string.meeting_facts_notes_recap),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        ScannableBody(
+                            text = draft.notes,
+                            style = MaterialTheme.typography.bodyMedium,
+                            modifier = Modifier.padding(top = 4.dp),
+                        )
+                    }
+                }
+            }
+        }
 
         draft.attendeeIds.forEach { personId ->
             item(key = "head-$personId") {

@@ -14,67 +14,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.persondic.R
 import com.persondic.data.local.entity.Fact
 import com.persondic.data.local.entity.Interaction
 import com.persondic.ui.common.FactCategoryGroup
+import com.persondic.ui.common.ScannableBody
 import com.persondic.ui.common.categoryLabel
 import com.persondic.ui.common.directionLabel
 import com.persondic.ui.common.interactionKindLabel
 import com.persondic.ui.common.relativeDateLabel
-
-/**
- * A body that stays scannable.
- *
- * The briefing exists to be read in thirty seconds before walking into a room, which is why every
- * section is capped at three or four entries. The entries themselves were never capped, and facts
- * do not get written as the one line the design assumed — they get written as several sentences of
- * memo. One of those fills the screen by itself and the cap on entries stops meaning anything.
- *
- * So the first few lines show and the rest opens on a tap. Nothing is hidden and nothing is
- * rewritten: the person's own screen still shows every word, because that is the screen for
- * reading rather than scanning.
- */
-@Composable
-private fun ScannableBody(
-    text: String,
-    style: TextStyle,
-    modifier: Modifier = Modifier,
-    color: Color = Color.Unspecified,
-) {
-    var expanded by rememberSaveable(text) { mutableStateOf(false) }
-    // Whether it needed clamping at all, remembered from the last measurement that clamped it —
-    // once open there is no overflow to detect, and the way back has to stay on screen.
-    var overflowed by remember(text) { mutableStateOf(false) }
-
-    Column(modifier = modifier.clickable(enabled = overflowed) { expanded = !expanded }) {
-        Text(
-            text = text,
-            style = style,
-            color = color,
-            maxLines = if (expanded) Int.MAX_VALUE else SCAN_LINES,
-            overflow = TextOverflow.Ellipsis,
-            onTextLayout = { layout -> if (!expanded) overflowed = layout.hasVisualOverflow },
-        )
-        if (overflowed) {
-            Text(
-                text = stringResource(if (expanded) R.string.action_collapse else R.string.action_expand),
-                style = MaterialTheme.typography.labelMedium,
-                color = MaterialTheme.colorScheme.primary,
-            )
-        }
-    }
-}
-
-private const val SCAN_LINES = 3
 
 @Composable
 internal fun SectionHeader(title: String) {

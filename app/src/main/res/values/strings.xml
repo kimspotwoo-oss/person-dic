@@ -152,6 +152,7 @@
     <string name="meeting_facts_add">사실 추가</string>
     <string name="meeting_facts_about">%1$s에 대해 알게 된 것</string>
     <string name="meeting_next">다음</string>
+    <string name="meeting_facts_notes_recap">적어둔 대화 내용</string>
     <string name="meeting_previous">뒤로</string>
     <string name="meeting_save">저장</string>
     <string name="briefing_record_interaction">만남 기록하기</string>
