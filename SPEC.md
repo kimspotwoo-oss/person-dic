@@ -790,6 +790,23 @@ Phase 3 대비 메모: `Fact.confidence`와 `Fact.supersededBy`는 아직 쓰이
   실제로 하려면 모델을 어떻게 들여오느냐부터 정해야 한다 — APK에 통째로 번들(용량 큼) /
   OS가 제공하는 경로(AICore 등, 앱 자체엔 네트워크 코드가 없을 수 있음) / 첫 실행 시 다운로드
   (명백히 네트워크) 중 설계원칙 2(모든 데이터는 기기 안에만)를 안 깨는 쪽을 먼저 확인해야 한다.
+  **확인한 것 (2026-10):**
+  - 구글 문서(developer.android.com/ai/gemini-nano)로 확인: OS 경로에서는 **앱이 모델을 받지
+    않는다.** AICore가 배포·갱신을 맡고, AICore 자신도 인터넷에 직접 닿지 않으며 다운로드는
+    Private Compute Services를 거친다. 추론은 기기 안에서 하고 입력·출력을 남기지 않는다.
+  - 검색 요약으로만 확인(1차 문서 developers.google.com은 이 개발 환경에서 차단): ML Kit
+    GenAI Prompt API는 알파를 지나 베타(`com.google.mlkit:genai-prompt`), **영어와 한국어만
+    검증됨**, minSdk 26(이 앱과 같음), 지원 기기 한정 — 갤럭시 S25·S26 계열, 픽셀(Pixel 10에서
+    가장 잘 동작) 등. 첫 사용 때 시스템이 1GB 넘게 받는다.
+  - **확인 못 한 것 — 결정적이다:** 이 라이브러리가 앱 매니페스트에 `INTERNET` 권한을 끼워
+    넣는지. 앱 코드에 네트워크가 없어도 병합된 매니페스트에 들어오면 Phase 0 규칙 위반이다.
+    구글 Maven이 이 환경에서 막혀 라이브러리를 열어볼 수 없었다. 의존성을 넣은 빌드의
+    병합 매니페스트(`app/build/intermediates/merged_manifests/`)를 CI에서 보고 정해야 한다.
+    ML Kit 샘플 저장소에 "네트워크 권한 없는 번들 ML Kit에서 ClientTelemetry 연결"을 묻는
+    [이슈](https://github.com/googlesamples/mlkit/issues/1076)가 있어(제목만 확인, 본문은 이 세션
+    범위 밖), 원칙 2 관점에서 사용 통계 전송 여부도 같이 봐야 한다.
+  - 지원 기기에서만 되므로 들어가더라도 **수동 입력이 기본 경로로 남고** 자동 추출은 있으면
+    쓰는 보조여야 한다.
 
 ### 참고: 유사 앱 조사에서 가져온 아이디어 (2026-10, 전부 미확정)
 
