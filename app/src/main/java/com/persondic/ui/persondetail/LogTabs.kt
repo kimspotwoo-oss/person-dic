@@ -18,6 +18,7 @@ import com.persondic.R
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Interaction
 import com.persondic.domain.TimelineMonth
+import com.persondic.domain.splitCommitments
 import com.persondic.ui.common.relativeDateLabel
 import com.persondic.ui.common.commitmentStatusLabel
 import com.persondic.ui.common.directionLabel
@@ -98,24 +99,42 @@ fun LazyListScope.commitmentItems(commitments: List<Commitment>, onLongPress: (C
         item(key = "commitments-empty") { EmptyTabMessage(R.string.person_detail_commitments_empty) }
         return
     }
-    items(commitments, key = { "commitment-${it.id}" }) { commitment ->
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .combinedClickable(onClick = {}, onLongClick = { onLongPress(commitment) })
-                .padding(horizontal = 16.dp, vertical = 10.dp),
-        ) {
-            Text(text = commitment.body, style = MaterialTheme.typography.bodyLarge)
-            val meta = listOfNotNull(
-                directionLabel(commitment.direction),
-                commitmentStatusLabel(commitment.status),
-                commitment.dueOn?.let { formatDueDate(it) },
-            ).joinToString(" · ")
-            Text(
-                text = meta,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+    val sections = splitCommitments(commitments)
+    // Every row already shows its status, so a heading only earns its place by dividing the two.
+    val showHeadings = sections.open.isNotEmpty() && sections.finished.isNotEmpty()
+    listOf(
+        R.string.person_detail_commitments_open to sections.open,
+        R.string.person_detail_commitments_finished to sections.finished,
+    ).forEach { (heading, section) ->
+        if (showHeadings) {
+            item(key = "commitments-heading-$heading") {
+                Text(
+                    text = stringResource(heading),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp),
+                )
+            }
+        }
+        items(section, key = { "commitment-${it.id}" }) { commitment ->
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .combinedClickable(onClick = {}, onLongClick = { onLongPress(commitment) })
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
+            ) {
+                Text(text = commitment.body, style = MaterialTheme.typography.bodyLarge)
+                val meta = listOfNotNull(
+                    directionLabel(commitment.direction),
+                    commitmentStatusLabel(commitment.status),
+                    commitment.dueOn?.let { formatDueDate(it) },
+                ).joinToString(" · ")
+                Text(
+                    text = meta,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
         }
     }
 }

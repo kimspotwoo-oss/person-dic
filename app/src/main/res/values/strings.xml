@@ -124,6 +124,8 @@
     <string name="person_detail_facts_empty">아직 등록된 사실이 없습니다</string>
     <string name="person_detail_interactions_empty">아직 만남 기록이 없습니다</string>
     <string name="person_detail_commitments_empty">아직 약속이 없습니다</string>
+    <string name="person_detail_commitments_open">열린 약속</string>
+    <string name="person_detail_commitments_finished">끝난 약속</string>
 
     <string name="briefing_section_caution">주의</string>
     <string name="briefing_section_open_commitments">열린 약속</string>
