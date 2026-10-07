@@ -138,6 +138,9 @@
     <string name="home_tab_people">사람</string>
     <string name="home_record_meeting">만남 기록하기</string>
     <string name="home_reminders_empty">날짜가 붙은 챙길 것이 없습니다. 마감이 지났거나 2주 안에 다가온 약속과, 2주 안에 오는 생일이 여기 모입니다.</string>
+    <string name="home_reminders_overdue">기한 지남</string>
+    <string name="home_reminders_this_week">이번 주</string>
+    <string name="home_reminders_later">다음 주부터</string>
     <string name="home_add_reminder">챙길 것 추가</string>
     <string name="home_reminder_body">무엇을 (예: 연락하기)</string>
     <string name="home_reminder_when">언제까지</string>

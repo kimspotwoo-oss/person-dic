@@ -42,6 +42,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.persondic.R
 import com.persondic.data.local.entity.Person
+import com.persondic.domain.ReminderWindow
 import com.persondic.ui.common.ReminderRows
 import com.persondic.ui.common.ViewModelFactory
 import com.persondic.ui.common.requirePersonDicApplication
@@ -70,7 +71,7 @@ fun HomeScreen(
     val viewModel: HomeViewModel = viewModel(
         factory = ViewModelFactory { HomeViewModel(application.repository) },
     )
-    val reminders by viewModel.reminders.collectAsStateWithLifecycle()
+    val reminderGroups by viewModel.reminderGroups.collectAsStateWithLifecycle()
     val people by viewModel.people.collectAsStateWithLifecycle()
     var showMenu by remember { mutableStateOf(false) }
     var addingReminder by rememberSaveable { mutableStateOf(false) }
@@ -132,7 +133,7 @@ fun HomeScreen(
                 color = MaterialTheme.colorScheme.primary,
                 modifier = Modifier.padding(top = 28.dp),
             )
-            if (reminders.isEmpty()) {
+            if (reminderGroups.isEmpty()) {
                 Text(
                     text = stringResource(R.string.home_reminders_empty),
                     style = MaterialTheme.typography.bodyMedium,
@@ -140,11 +141,23 @@ fun HomeScreen(
                     modifier = Modifier.padding(top = 8.dp),
                 )
             } else {
-                ReminderRows(
-                    reminders = reminders,
-                    onPersonClick = onPersonClick,
-                    modifier = Modifier.padding(top = 4.dp),
-                )
+                // A heading over the only group would separate it from nothing.
+                val showHeadings = reminderGroups.size > 1
+                reminderGroups.forEach { group ->
+                    if (showHeadings) {
+                        Text(
+                            text = reminderWindowLabel(group.window),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(top = 12.dp),
+                        )
+                    }
+                    ReminderRows(
+                        reminders = group.reminders,
+                        onPersonClick = onPersonClick,
+                        modifier = Modifier.padding(top = 4.dp),
+                    )
+                }
             }
 
             OutlinedButton(
@@ -270,4 +283,11 @@ private fun AddReminderDialog(
             TextButton(onClick = onDismiss) { Text(stringResource(R.string.action_cancel)) }
         },
     )
+}
+
+@Composable
+private fun reminderWindowLabel(window: ReminderWindow): String = when (window) {
+    ReminderWindow.OVERDUE -> stringResource(R.string.home_reminders_overdue)
+    ReminderWindow.THIS_WEEK -> stringResource(R.string.home_reminders_this_week)
+    ReminderWindow.LATER -> stringResource(R.string.home_reminders_later)
 }

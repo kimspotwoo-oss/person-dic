@@ -2,8 +2,10 @@ package com.persondic.domain
 
 import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Person
+import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.MonthDay
+import java.time.temporal.TemporalAdjusters
 import java.util.UUID
 
 enum class ReminderKind {
@@ -85,3 +87,22 @@ fun buildReminders(
 
 /** Two weeks out. Far enough to act on, close enough not to become a wall of text. */
 const val DEFAULT_HORIZON_DAYS = 14L
+
+enum class ReminderWindow { OVERDUE, THIS_WEEK, LATER }
+
+data class ReminderGroup(val window: ReminderWindow, val reminders: List<Reminder>)
+
+/** Groups by calendar week (Mon–Sun), using the same [today] that built the reminders. */
+fun groupReminders(reminders: List<Reminder>, today: LocalDate): List<ReminderGroup> {
+    val endOfWeek = today.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY))
+    return reminders
+        .groupBy { reminder ->
+            when {
+                reminder.date < today -> ReminderWindow.OVERDUE
+                reminder.date <= endOfWeek -> ReminderWindow.THIS_WEEK
+                else -> ReminderWindow.LATER
+            }
+        }
+        .map { (window, items) -> ReminderGroup(window, items) }
+        .sortedBy { it.window }
+}

@@ -6,8 +6,9 @@ import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Person
 import com.persondic.data.model.Direction
 import com.persondic.data.repository.PersonDicRepository
-import com.persondic.domain.Reminder
+import com.persondic.domain.ReminderGroup
 import com.persondic.domain.buildReminders
+import com.persondic.domain.groupReminders
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
@@ -18,10 +19,13 @@ import java.util.UUID
 
 class HomeViewModel(private val repository: PersonDicRepository) : ViewModel() {
 
-    val reminders: StateFlow<List<Reminder>> = combine(
+    val reminderGroups: StateFlow<List<ReminderGroup>> = combine(
         repository.observePeople(),
         repository.observeAllOpenCommitments(),
-    ) { people, commitments -> buildReminders(people, commitments) }
+    ) { people, commitments ->
+        val today = LocalDate.now()
+        groupReminders(buildReminders(people, commitments, today), today)
+    }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     /** For choosing who a new reminder is about. */
