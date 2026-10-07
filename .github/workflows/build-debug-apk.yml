@@ -30,6 +30,9 @@ jobs:
       - name: Build debug APK
         run: ./gradlew assembleDebug --no-daemon --stacktrace
 
+      - name: Run unit tests
+        run: ./gradlew testDebugUnitTest --no-daemon --stacktrace
+
       # The release variant is shrunk by R8 and the debug one is not, so a keep rule that stops
       # working shows up here and nowhere else. Unsigned: signing a real release needs a key that
       # is deliberately not in this repository. This proves it builds — it does not prove it runs,
