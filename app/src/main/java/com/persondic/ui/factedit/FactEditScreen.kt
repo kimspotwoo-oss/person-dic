@@ -10,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -19,9 +20,13 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -39,6 +44,7 @@ import com.persondic.ui.common.categoryLabel
 import com.persondic.ui.common.requirePersonDicApplication
 import com.persondic.ui.common.sensitivityLabel
 import com.persondic.ui.common.volatilityLabel
+import com.persondic.ui.persondetail.AddCommitmentDialog
 import java.time.LocalDate
 import java.util.UUID
 
@@ -55,6 +61,8 @@ fun FactEditScreen(
         factory = ViewModelFactory { FactEditViewModel(application.repository, personId, factId) },
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    var showCommitmentPrompt by rememberSaveable { mutableStateOf(false) }
+    var showAddCommitmentDialog by rememberSaveable { mutableStateOf(false) }
 
     Scaffold(
         modifier = modifier,
@@ -74,7 +82,15 @@ fun FactEditScreen(
                 },
                 actions = {
                     IconButton(
-                        onClick = { viewModel.save(onSaved = onDone) },
+                        onClick = {
+                            viewModel.save(
+                                onSaved = {
+                                    // A fresh fact may be worth following up on; editing one isn't
+                                    // a new thing happening, so only offer this on the add path.
+                                    if (viewModel.isEditing) onDone() else showCommitmentPrompt = true
+                                },
+                            )
+                        },
                         enabled = uiState.body.isNotBlank(),
                     ) {
                         Icon(Icons.Default.Check, contentDescription = stringResource(R.string.action_save))
@@ -154,6 +170,50 @@ fun FactEditScreen(
                 Switch(checked = uiState.pinned, onCheckedChange = viewModel::onPinnedChange)
             }
         }
+    }
+
+    if (showCommitmentPrompt) {
+        AlertDialog(
+            onDismissRequest = {
+                showCommitmentPrompt = false
+                onDone()
+            },
+            title = { Text(stringResource(R.string.fact_edit_commitment_prompt_title)) },
+            text = { Text(stringResource(R.string.fact_edit_commitment_prompt_body)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showCommitmentPrompt = false
+                        showAddCommitmentDialog = true
+                    },
+                ) {
+                    Text(stringResource(R.string.fact_edit_commitment_prompt_confirm))
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCommitmentPrompt = false
+                        onDone()
+                    },
+                ) {
+                    Text(stringResource(R.string.fact_edit_commitment_prompt_dismiss))
+                }
+            },
+        )
+    }
+
+    if (showAddCommitmentDialog) {
+        AddCommitmentDialog(
+            onDismiss = {
+                showAddCommitmentDialog = false
+                onDone()
+            },
+            onConfirm = { direction, body, dueOn ->
+                viewModel.addCommitment(direction, body, dueOn, onSaved = onDone)
+                showAddCommitmentDialog = false
+            },
+        )
     }
 }
 

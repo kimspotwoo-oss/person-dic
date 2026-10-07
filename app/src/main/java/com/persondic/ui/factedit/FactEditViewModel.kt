@@ -2,7 +2,9 @@ package com.persondic.ui.factedit
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.persondic.data.local.entity.Commitment
 import com.persondic.data.local.entity.Fact
+import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.model.Volatility
@@ -103,6 +105,17 @@ class FactEditViewModel(
                     ),
                 )
             }
+            onSaved()
+        }
+    }
+
+    fun addCommitment(direction: Direction, body: String, dueOn: LocalDate?, onSaved: () -> Unit) {
+        val trimmedBody = body.trim()
+        if (trimmedBody.isEmpty()) return
+        viewModelScope.launch {
+            repository.addCommitment(
+                Commitment(personId = personId, direction = direction, body = trimmedBody, dueOn = dueOn),
+            )
             onSaved()
         }
     }
