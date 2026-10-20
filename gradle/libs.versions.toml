@@ -14,6 +14,7 @@ serialization = "1.7.3"
 junit = "4.13.2"
 androidxTestExtJunit = "1.2.1"
 espressoCore = "1.6.1"
+genaiPrompt = "GENAI_PROMPT_VERSION"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -41,6 +42,7 @@ kotlinx-coroutines-test = { group = "org.jetbrains.kotlinx", name = "kotlinx-cor
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-test-ext-junit = { group = "androidx.test.ext", name = "junit", version.ref = "androidxTestExtJunit" }
 androidx-test-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }
+mlkit-genai-prompt = { group = "com.google.mlkit", name = "genai-prompt", version.ref = "genaiPrompt" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
