@@ -1,0 +1,554 @@
+
+ Gemini Nano  |  AI  |  Android Developers 
+ Skip to main content
+ Essentials
+ Build AI experiences 
+ Build AI-powered Android apps with Gemini APIs and more.
+ Get started
+ Get started 
+ Create your first app. Use Compose for UI and adaptive app development to support multiple device form factors.
+ Hello, world!
+ Developer Verification
+ Adaptive apps
+ Compose for UI
+ AI-powered IDE
+ Training
+ Monetization with Play ↗️
+ Optimize by form factor 
+ Build apps that optimize the user experience on phones, tablets, foldables, cars, XR, and more.
+ Phones, tablets, foldables
+ Android for Cars
+ Android TV
+ Android XR
+ Googlebook
+ ChromeOS
+ Wear OS
+ Build by category 
+ Learn to build for your use case by following Google's prescriptive and opinionated guidance.
+ Games
+ Camera & media
+ Social & messaging
+ Health & fitness
+ Productivity
+ Enterprise apps
+ Get the latest 
+ Stay in touch with the latest releases throughout the year, join our preview programs, and give us your feedback.
+ Latest updates
+ Experimental updates
+ Android Studio preview
+ Jetpack & Compose libraries
+ Wear OS releases
+ Privacy Sandbox ↗️
+ Design & Plan
+ Excellent Experiences 
+ Build the best experiences for your best users.
+ Learn more
+ UI Design 
+ Design a beautiful user interface using Android best practices. 
+ Design for Android
+ Mobile
+ Desktop experiences
+ XR Headsets & XR Glasses
+ AI Glasses
+ Widgets
+ Wear OS
+ Android TV
+ Android for Cars
+ Architecture 
+ Design robust, testable, and maintainable app logic and services. 
+ Introduction
+ Libraries
+ Navigation
+ Modularization
+ Testing
+ Kotlin Multiplatform
+ Quality 
+ Plan for app quality and align with Play store guidelines. 
+ Overview
+ Core value
+ User experience
+ Accessibility
+ Technical quality
+ Excellent Experiences
+ Security 
+ Safeguard users against threats and ensure a secure Android experience. 
+ Overview
+ Privacy
+ Permissions
+ Identity
+ Fraud prevention
+ Develop
+ Gemini in Android Studio 
+ Your AI development companion for Android development.
+ Learn more
+ Get Android Studio
+ Core areas 
+ Get the samples and docs for the features you need. 
+ Samples
+ Multidevice support
+ User interfaces
+ Background work
+ Data and files
+ Connectivity
+ All core areas ⤵️
+ Tools and workflow 
+ Use the IDE to write and build your app, or create your own pipeline. 
+ Write and debug code
+ Build projects
+ Test your app
+ Performance
+ Command-line tools
+ Gradle plugin API
+ Android Bench
+ Device tech 
+ Write code for form factors. Connect devices and share data. 
+ Phones, tablets, foldables
+ Googlebook
+ ChromeOS
+ Android for Cars
+ Android TV
+ Android XR
+ Wear OS
+ Android Health
+ Better Together
+ All devices ⤵️
+ Libraries 
+ Browse API reference documentation with all the details. 
+ Android platform
+ Jetpack libraries
+ Compose libraries
+ Google Play services ↗️
+ Google Play SDK index ↗️
+ Google Play
+ Play Console 
+ Publish your app or game and grow your business on Google Play.
+ Go to Play Console
+ Learn more ↗️
+ Fundamentals 
+ Learn how to engage users, monitize, and secure your app. 
+ Play Monetization
+ Play Integrity
+ Android vitals
+ Play Policies
+ Play Programs ↗️
+ Games Dev Center 
+ Develop and deliver games. Get tools, downloads, and samples. 
+ Overview
+ Play Asset Delivery
+ Play Games Services
+ Play Games on PC
+ Level Up guidelines
+ All Play guides ⤵️
+ Libraries 
+ Browse API reference documentation with all the details. 
+ Play Feature Delivery
+ Play In-app Updates
+ Play In-app Reviews
+ Play Install Referrer
+ Google Play services ↗️
+ Google Play SDK index ↗️
+ All Play libraries ⤵️
+ Tools & resources 
+ Tools for publishing, promoting, and managing your app. 
+ Android App Bundles
+ Brand & marketing
+ Play Console APIs ↗️
+ Blog
+ the Android Developer's Blog 
+ Read the latest
+ Explore the authors →
+ Explore categories 
+ Product News
+ Stay in the loop with the latest updates, feature releases, and behind-the-scenes looks at how we’re evolving.
+ Community
+ Discover stories from our users, spotlight features, and the collaborative projects that bring us all together.
+ How-tos
+ From quick tips to deep-dive tutorials, these step-by-step guides are designed to help you work smarter and faster.
+ Case Studies
+ Real-world results from real-world users. Explore how different teams use our tools to achieve their goals.
+ Events & Programs
+ Get the details on upcoming webinars, workshops, meetups, and special initiatives designed to help you grow.
+ Documentation
+ Access detailed manuals, API references, and technical specifications to help you build and integrate with confidence.
+ / 
+ English 
+ Deutsch 
+ Español – América Latina 
+ Français 
+ Indonesia 
+ Italiano 
+ Polski 
+ Português – Brasil 
+ Tiếng Việt 
+ Türkçe 
+ Русский 
+ עברית 
+ العربيّة 
+ فارسی 
+ हिंदी 
+ বাংলা 
+ ภาษาไทย 
+ 中文 – 简体 
+ 中文 – 繁體 
+ 日本語 
+ 한국어 
+ Android Studio
+ Sign in 
+ AI
+ Overview
+ Samples
+ Guides
+ Reference
+ Essentials
+ More
+ Design & Plan
+ More
+ Develop
+ More
+ Overview
+ Samples
+ Guides
+ Reference
+ Google Play
+ More
+ Blog
+ More
+ Android Studio
+ In-app intelligence 
+ Overview 
+ Gemini Nano 
+ Gemini Pro & Gemini Flash 
+ Overview Gemini Developer API Gemini Live API Agent Platform Gemini API Hybrid inference 
+ ADK agents 
+ Use agents to generate UI ⍈ 
+ Intelligence system 
+ Overview 
+ AppFunctions 
+ Overview Add AppFunctions to your app 
+ Computer Control 
+ Machine learning 
+ LiteRT 
+ ML Kit ⍈ 
+ Build AI experiences
+ Get started
+ Get started
+ Hello, world!
+ Developer Verification
+ Adaptive apps
+ Compose for UI
+ AI-powered IDE
+ Training
+ Monetization with Play ↗️
+ Optimize by form factor
+ Phones, tablets, foldables
+ Android for Cars
+ Android TV
+ Android XR
+ Googlebook
+ ChromeOS
+ Wear OS
+ Build by category
+ Games
+ Camera & media
+ Social & messaging
+ Health & fitness
+ Productivity
+ Enterprise apps
+ Get the latest
+ Latest updates
+ Experimental updates
+ Android Studio preview
+ Jetpack & Compose libraries
+ Wear OS releases
+ Privacy Sandbox ↗️
+ Excellent Experiences
+ Learn more
+ UI Design
+ Design for Android
+ Mobile
+ Desktop experiences
+ XR Headsets & XR Glasses
+ AI Glasses
+ Widgets
+ Wear OS
+ Android TV
+ Android for Cars
+ Architecture
+ Introduction
+ Libraries
+ Navigation
+ Modularization
+ Testing
+ Kotlin Multiplatform
+ Quality
+ Overview
+ Core value
+ User experience
+ Accessibility
+ Technical quality
+ Excellent Experiences
+ Security
+ Overview
+ Privacy
+ Permissions
+ Identity
+ Fraud prevention
+ Gemini in Android Studio
+ Learn more
+ Get Android Studio
+ Core areas
+ Samples
+ Multidevice support
+ User interfaces
+ Background work
+ Data and files
+ Connectivity
+ All core areas ⤵️
+ Tools and workflow
+ Write and debug code
+ Build projects
+ Test your app
+ Performance
+ Command-line tools
+ Gradle plugin API
+ Android Bench
+ Device tech
+ Phones, tablets, foldables
+ Googlebook
+ ChromeOS
+ Android for Cars
+ Android TV
+ Android XR
+ Wear OS
+ Android Health
+ Better Together
+ All devices ⤵️
+ Libraries
+ Android platform
+ Jetpack libraries
+ Compose libraries
+ Google Play services ↗️
+ Google Play SDK index ↗️
+ Play Console
+ Go to Play Console
+ Learn more ↗️
+ Fundamentals
+ Play Monetization
+ Play Integrity
+ Android vitals
+ Play Policies
+ Play Programs ↗️
+ Games Dev Center
+ Overview
+ Play Asset Delivery
+ Play Games Services
+ Play Games on PC
+ Level Up guidelines
+ All Play guides ⤵️
+ Libraries
+ Play Feature Delivery
+ Play In-app Updates
+ Play In-app Reviews
+ Play Install Referrer
+ Google Play services ↗️
+ Google Play SDK index ↗️
+ All Play libraries ⤵️
+ Tools & resources
+ Android App Bundles
+ Brand & marketing
+ Play Console APIs ↗️
+ the Android Developer's Blog
+ Read the latest
+ Explore the authors →
+ Explore categories
+ Product News
+ Community
+ How-tos
+ Case Studies
+ Events & Programs
+ Documentation
+ Android Developers
+ Develop
+ AI
+ Guides
+ Send feedback
+ Gemini Nano 
+ Stay organized with collections
+ Save and categorize content based on your preferences.
+ Gemini Nano lets you deliver rich generative AI experiences without needing
+a network connection or sending data to the cloud. On-device AI is a great
+solution for use-cases where low cost and privacy safeguards are your primary
+concerns. 
+ For on-device use-cases, you can take advantage of Google's Gemini Nano
+foundation model. Gemini Nano runs in Android's AICore system service ,
+which leverages device hardware to enable low inference latency and keeps the
+model up-to-date. 
+ ML Kit GenAI APIs 
+ ML Kit's GenAI APIs harness the power of Gemini Nano to help your apps perform
+tasks. These APIs provide out-of-the-box quality for popular use cases through
+a high-level interface. The ML Kit GenAI APIs are built on top of AICore, an
+Android system service that enables on-device execution of GenAI foundation
+models to facilitate features such as enhanced app functionality and
+improved user privacy by processing data locally. Learn more . 
+ Note: The ML Kit GenAI API Additional Terms of Service apply to the use of
+the GenAI APIs. Developers are solely responsible for the safety of their API
+client and their app's user experience. 
+ Key features 
+ The ML Kit GenAI APIs support the following features: 
+ Prompt : Generate text content based on a custom
+text-only or multimodal prompt. 
+ Summarization : Summarize articles or conversations as a
+bulleted list. 
+ Proofreading : Proofread short chat messages. 
+ Rewriting : Rewrite short chat messages in different tones
+or styles. 
+ Image Description : Generate a short description of a
+given image. 
+ Speech Recognition : Transcribe spoken audio to text. 
+ Android skills
+ View on GitHub
+ open_in_new 
+ Use the ML Kit Prompt API
+ Use an Android skill to integrate and optimize the ML Kit Prompt API in your app. 
+ To install the skill from the Android CLI , run: 
+ android skills add ml-kit-genai-prompt-api 
+ Architecture through AICore 
+ As a system-level module, you access AICore through a series of APIs in order to
+run inference on-device. In addition, AICore has several built-in safety
+features, ensuring a thorough evaluation against our safety filters. The
+following diagram outlines how an app accesses AICore to run Gemini Nano
+on-device. 
+ Figure 1. AICore serves as the interface between your
+ app and the Gemini Nano model, managing model updates and safety while
+ leveraging on-device hardware. 
+ Keep user data private and secure 
+ On-device generative AI executes prompts locally, eliminating server calls.
+While this removes network latency, inference speed depends on device hardware.
+This approach enhances privacy by keeping sensitive data on the device,
+enables offline functionality, and reduces inference costs. 
+ AICore adheres to the Private Compute Core principles, with the following
+key characteristics: 
+ Restricted Package Binding : AICore is isolated from most other packages,
+with limited exceptions for specific system packages. Any modifications to
+this allowed list can only occur during a full Android OTA update. 
+ Indirect Internet Access : AICore does not have direct internet access.
+All internet requests, including model downloads, are routed through the
+open-source Private Compute Services companion APK. APIs within Private
+Compute Services must explicitly demonstrate their privacy-centric nature. 
+ Additionally, AICore is built to isolate each request and doesn't store
+any record of the input data or the resulting outputs after processing
+them to protect user privacy. Read the blog post
+ An Introduction to Privacy and Safety for Gemini Nano to learn more. 
+ Figure 2. The AICore architecture manages input and
+ output safety, request processing, and model weights to provide a secure
+ environment for on-device AI. 
+ Benefits of accessing AI foundation models with AICore 
+ AICore enables the Android OS to provide and manage AI foundation models.
+This significantly reduces the cost of using these large models in your app,
+principally due to the following: 
+ Ease of deployment : AICore manages the distribution of Gemini Nano and
+handles future updates. You don't need to worry about downloading or updating
+large models over the network, nor impact on your app's disk and runtime
+memory budget. 
+ Accelerated inference : AICore leverages on-device hardware to accelerate
+inference. Your app gets the best performance on each device, and you don't
+need to worry about the underlying hardware interfaces. 
+ When to use hybrid inference 
+ Although Gemini Nano is ideal for offline and privacy-sensitive tasks, it has
+on-device constraints such as token limits, device hardware limitations, and
+model capability boundaries. In these scenarios, you can use
+ hybrid inference to balance AI workloads between the local device and the
+cloud. 
+ To ensure a consistent user experience across all devices and handle complex
+queries, you can use the Firebase AI Logic Hybrid API . This lets your app
+do the following: 
+ Fall back gracefully : Automatically route requests to Gemini Flash or
+Gemini Pro models in the cloud when Gemini Nano is unavailable or unsupported
+on the user's device. 
+ Enforce security : Protect cloud inference with
+ Firebase App Check (and its supported attestation providers, like
+Play Integrity) and keep sensitive system prompts server-side. 
+ Send feedback
+ Content and code samples on this page are subject to the licenses described in the Content License . Java and OpenJDK are trademarks or registered trademarks of Oracle and/or its affiliates. 
+ Last updated 2026-10-08 UTC. 
+ Need to tell us more?
+ [[["Easy to understand","easyToUnderstand","thumb-up"],["Solved my problem","solvedMyProblem","thumb-up"],["Other","otherUp","thumb-up"]],[["Missing the information I need","missingTheInformationINeed","thumb-down"],["Too complicated / too many steps","tooComplicatedTooManySteps","thumb-down"],["Out of date","outOfDate","thumb-down"],["Samples / code issue","samplesCodeIssue","thumb-down"],["Other","otherDown","thumb-down"]],["Last updated 2026-10-08 UTC."],[],[]]
+ X
+ Follow @AndroidDev on X 
+ YouTube
+ Check out Android Developers on YouTube 
+ LinkedIn
+ Connect with the Android Developers community on LinkedIn 
+ More Android 
+ Android
+ Android for Enterprise
+ Security
+ Source
+ News
+ Blog
+ Podcasts
+ Discover 
+ Gaming
+ Machine Learning
+ Health & Fitness
+ Camera & Media
+ Privacy
+ 5G
+ Android Devices 
+ Large screens
+ Wear OS
+ ChromeOS devices
+ Android for cars
+ Android TV
+ Releases 
+ Android 17
+ Android 16
+ Android 15
+ Android 14
+ Android 13
+ Android 12
+ Android 11
+ Documentation and Downloads 
+ Android Studio guide
+ Developers guides
+ API reference
+ Download Studio
+ Android NDK
+ Support 
+ Report platform bug
+ Report documentation bug
+ Google Play support
+ Join research studies
+ Android
+ Chrome
+ Firebase
+ Google Cloud Platform
+ All products
+ Privacy
+ License
+ Brand guidelines
+ Manage cookies
+ Get news and tips by email 
+ Subscribe
+ English 
+ Deutsch 
+ Español – América Latina 
+ Français 
+ Indonesia 
+ Italiano 
+ Polski 
+ Português – Brasil 
+ Tiếng Việt 
+ Türkçe 
+ Русский 
+ עברית 
+ العربيّة 
+ فارسی 
+ हिंदी 
+ বাংলা 
+ ภาษาไทย 
+ 中文 – 简体 
+ 中文 – 繁體 
+ 日本語 
+ 한국어 
+ 
