@@ -123,6 +123,8 @@
     <string name="tie_narrow_search">%1$d명 더 있습니다. 이름을 입력해 좁혀보세요.</string>
     <string name="person_detail_facts_empty">아직 등록된 사실이 없습니다</string>
     <string name="person_detail_interactions_empty">아직 만남 기록이 없습니다</string>
+    <string name="person_detail_one_line_hint">오늘 만남을 한 줄로 남기기</string>
+    <string name="person_detail_one_line_save">한 줄 만남 저장</string>
     <string name="person_detail_commitments_empty">아직 약속이 없습니다</string>
     <string name="person_detail_commitments_open">열린 약속</string>
     <string name="person_detail_commitments_finished">끝난 약속</string>

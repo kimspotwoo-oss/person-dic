@@ -24,6 +24,7 @@ import com.persondic.data.model.CommitmentStatus
 import com.persondic.data.model.Sensitivity
 import com.persondic.domain.DerivedValues
 import com.persondic.domain.ExpirationCalculator
+import com.persondic.domain.MeetingRecord
 import kotlinx.coroutines.flow.Flow
 import java.time.Instant
 import java.time.LocalDate
@@ -232,6 +233,13 @@ class PersonDicRepository(
             )
         }
     }
+
+    suspend fun recordMeeting(record: MeetingRecord) = recordMeeting(
+        interaction = record.interaction,
+        attendeeIds = record.attendeeIds,
+        newPeople = record.newPeople,
+        facts = record.facts,
+    )
 
     suspend fun recordInteraction(interaction: Interaction, personId: UUID) {
         interactionDao.insert(interaction)
