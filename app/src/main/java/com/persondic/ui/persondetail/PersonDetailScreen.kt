@@ -79,6 +79,7 @@ fun PersonDetailScreen(
     val allAttributeLabels by viewModel.allAttributeLabels.collectAsStateWithLifecycle()
     val factSourceDates by viewModel.factSourceDates.collectAsStateWithLifecycle()
     val ties by viewModel.ties.collectAsStateWithLifecycle()
+    val savingOneLine by viewModel.savingOneLine.collectAsStateWithLifecycle()
     // Grouped here rather than in the ViewModel: it is a way of showing what is already loaded,
     // and both inputs are already on screen.
     val timeline = remember(interactions, factGroups) {
@@ -196,10 +197,13 @@ fun PersonDetailScreen(
                     sourceDates = factSourceDates,
                     onLongPress = { actionMenuFact = it },
                 )
-                1 -> interactionItems(
-                    months = timeline,
-                    onOpen = { onOpenInteraction(personId, it.id) },
-                )
+                1 -> {
+                    oneLineMeetingItem(saving = savingOneLine, onSave = viewModel::recordOneLine)
+                    interactionItems(
+                        months = timeline,
+                        onOpen = { onOpenInteraction(personId, it.id) },
+                    )
+                }
                 2 -> commitmentItems(
                     commitments = commitments,
                     onLongPress = { actionMenuCommitment = it },

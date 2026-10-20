@@ -1,11 +1,14 @@
 package com.persondic.domain
 
+import com.persondic.data.local.entity.Fact
+import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.InteractionKind
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.model.Volatility
 import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 /**
@@ -94,4 +97,64 @@ data class MeetingDraft(
     fun withoutFact(factId: UUID): MeetingDraft = copy(facts = facts.filterNot { it.id == factId })
 
     fun factsFor(personId: UUID): List<DraftFact> = facts.filter { it.personId == personId }
+
+    /**
+     * The rows this draft becomes. Both the full flow and the one-line entry on S2 save through
+     * here, so there is one idea of what a recorded meeting is, not two that drift apart.
+     *
+     * Null while nobody is chosen: a meeting with no attendees is a row nobody can find again.
+     */
+    fun toRecord(today: LocalDate): MeetingRecord? {
+        if (!canLeave(MeetingStep.WHO)) return null
+        val interaction = Interaction(
+            metAt = metAt,
+            place = place.trim().takeIf { it.isNotBlank() },
+            summary = summary.trim().takeIf { it.isNotBlank() },
+            notes = notes.trim().takeIf { it.isNotBlank() },
+            kind = kind,
+        )
+        return MeetingRecord(
+            interaction = interaction,
+            attendeeIds = attendeeIds,
+            newPeople = newPeople,
+            facts = facts.map { fact ->
+                Fact(
+                    personId = fact.personId,
+                    category = fact.category,
+                    body = fact.body.trim(),
+                    volatility = fact.volatility,
+                    sensitivity = fact.sensitivity,
+                    assertedOn = today,
+                    // What ties the fact back to the evening it was learned on.
+                    sourceId = interaction.id,
+                )
+            },
+        )
+    }
+
+    companion object {
+        /**
+         * A meeting written down as one line from someone's own page.
+         *
+         * It is the same draft the full flow builds, answered where it can be: the person is the
+         * page being looked at, which is the one question the flow refuses to skip; the date is
+         * now, as it would default to; the line is the summary. Place, notes and facts are left
+         * blank, which the flow already accepts as true answers.
+         *
+         * Null for a blank line — that is not a meeting anyone meant to save.
+         */
+        fun oneLine(personId: UUID, line: String, now: Instant): MeetingDraft? {
+            val summary = line.trim()
+            if (summary.isEmpty()) return null
+            return MeetingDraft(attendeeIds = listOf(personId), metAt = now, summary = summary)
+        }
+    }
 }
+
+/** What saving a [MeetingDraft] writes, in one transaction. */
+data class MeetingRecord(
+    val interaction: Interaction,
+    val attendeeIds: List<UUID>,
+    val newPeople: List<Person>,
+    val facts: List<Fact>,
+)

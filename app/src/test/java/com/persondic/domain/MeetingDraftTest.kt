@@ -1,11 +1,14 @@
 package com.persondic.domain
 
 import com.persondic.data.local.entity.Person
+import com.persondic.data.model.InteractionKind
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertNull
 import org.junit.Assert.assertTrue
 import org.junit.Test
+import java.time.Instant
+import java.time.LocalDate
 import java.util.UUID
 
 class MeetingDraftTest {
@@ -147,5 +150,82 @@ class MeetingDraftTest {
 
         assertEquals("테니스를 시작했다", draft.factsFor(minjun).single().body)
         assertEquals("이사 준비 중", draft.factsFor(hayoung).single().body)
+    }
+
+    // --- what saving writes ---
+
+    private val now = Instant.parse("2026-10-20T11:00:00Z")
+    private val today = LocalDate.of(2026, 10, 20)
+
+    @Test
+    fun nothingIsWrittenWithNobodyChosen() {
+        assertNull(MeetingDraft(metAt = now, summary = "점심").toRecord(today))
+    }
+
+    @Test
+    fun blankAnswersAreSavedAsNothingRatherThanEmptyText() {
+        val record = MeetingDraft(metAt = now, place = "  ", summary = " 점심 ", notes = "")
+            .withAttendee(minjun)
+            .toRecord(today)
+
+        assertNull(record?.interaction?.place)
+        assertEquals("점심", record?.interaction?.summary)
+        assertNull(record?.interaction?.notes)
+        assertEquals(now, record?.interaction?.metAt)
+        assertEquals(listOf(minjun), record?.attendeeIds)
+    }
+
+    @Test
+    fun factsPointBackToTheMeetingTheyCameFrom() {
+        val record = MeetingDraft(metAt = now)
+            .withAttendee(minjun)
+            .withFact(fact(minjun, " 테니스를 시작했다 "))
+            .toRecord(today)
+
+        val saved = record?.facts?.single()
+        assertEquals(record?.interaction?.id, saved?.sourceId)
+        assertEquals(today, saved?.assertedOn)
+        assertEquals("테니스를 시작했다", saved?.body)
+        assertEquals(minjun, saved?.personId)
+    }
+
+    // --- one line from S2 ---
+
+    @Test
+    fun oneLineIsAMeetingWithThatPersonNowWithTheLineAsSummary() {
+        val draft = MeetingDraft.oneLine(minjun, "  복도에서 잠깐 인사  ", now)
+
+        assertEquals(listOf(minjun), draft?.attendeeIds)
+        assertEquals(now, draft?.metAt)
+        assertEquals("복도에서 잠깐 인사", draft?.summary)
+        assertEquals("", draft?.place)
+        assertTrue(draft?.facts.orEmpty().isEmpty())
+        assertTrue(draft?.newPeople.orEmpty().isEmpty())
+    }
+
+    @Test
+    fun aBlankLineIsNotAMeeting() {
+        assertNull(MeetingDraft.oneLine(minjun, "", now))
+        assertNull(MeetingDraft.oneLine(minjun, "   ", now))
+    }
+
+    @Test
+    fun oneLineAlreadyAnswersTheOnlyQuestionTheFlowRefusesToSkip() {
+        // The same draft S4 builds, so it saves through the same path and S4 can reopen it.
+        val draft = MeetingDraft.oneLine(minjun, "점심", now)
+
+        MeetingStep.entries.forEach { step -> assertTrue(draft?.canLeave(step) == true) }
+    }
+
+    @Test
+    fun oneLineSavesAsAnOrdinaryMeetingRecord() {
+        val record = MeetingDraft.oneLine(minjun, "점심", now)?.toRecord(today)
+
+        assertEquals("점심", record?.interaction?.summary)
+        assertNull(record?.interaction?.place)
+        assertNull(record?.interaction?.notes)
+        assertEquals(InteractionKind.MEET, record?.interaction?.kind)
+        assertEquals(listOf(minjun), record?.attendeeIds)
+        assertTrue(record?.facts.orEmpty().isEmpty())
     }
 }

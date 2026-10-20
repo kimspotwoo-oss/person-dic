@@ -12,15 +12,19 @@ import com.persondic.data.model.Direction
 import com.persondic.data.model.FactCategory
 import com.persondic.data.model.Sensitivity
 import com.persondic.data.repository.PersonDicRepository
+import com.persondic.domain.MeetingDraft
 import com.persondic.domain.TieView
 import com.persondic.domain.describeTies
 import com.persondic.ui.common.FactCategoryGroup
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import java.time.Instant
 import java.time.LocalDate
 import java.time.ZoneId
 import java.util.UUID
@@ -151,6 +155,29 @@ class PersonDetailViewModel(
             repository.addCommitment(
                 Commitment(personId = personId, direction = direction, body = trimmedBody, dueOn = dueOn),
             )
+        }
+    }
+
+    private val _savingOneLine = MutableStateFlow(false)
+    val savingOneLine: StateFlow<Boolean> = _savingOneLine.asStateFlow()
+
+    /**
+     * Records a meeting with this person as a single line (S2, G36).
+     *
+     * Goes through [MeetingDraft] and the same repository call as the full S4 flow, so a quick line
+     * is an ordinary meeting that S4 can reopen and fill in later. Guarded against a second tap for
+     * the reason S4's save is: the same meeting twice cannot be told apart from meeting twice.
+     */
+    fun recordOneLine(line: String, onSaved: () -> Unit) {
+        if (_savingOneLine.value) return
+        val record = MeetingDraft.oneLine(personId, line, Instant.now())
+            ?.toRecord(LocalDate.now())
+            ?: return
+        _savingOneLine.value = true
+        viewModelScope.launch {
+            repository.recordMeeting(record)
+            _savingOneLine.value = false
+            onSaved()
         }
     }
 

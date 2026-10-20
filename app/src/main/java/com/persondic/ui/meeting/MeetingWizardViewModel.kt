@@ -2,8 +2,6 @@ package com.persondic.ui.meeting
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.persondic.data.local.entity.Fact
-import com.persondic.data.local.entity.Interaction
 import com.persondic.data.local.entity.Person
 import com.persondic.data.repository.PersonDicRepository
 import com.persondic.domain.DraftFact
@@ -87,36 +85,11 @@ class MeetingWizardViewModel(
      */
     fun save(onSaved: () -> Unit) {
         if (_saving.value) return
-        val draft = _draft.value
-        if (!draft.canLeave(MeetingStep.WHO)) return
+        val record = _draft.value.toRecord(LocalDate.now()) ?: return
         _saving.value = true
 
         viewModelScope.launch {
-            val interaction = Interaction(
-                metAt = draft.metAt,
-                place = draft.place.trim().takeIf { it.isNotBlank() },
-                summary = draft.summary.trim().takeIf { it.isNotBlank() },
-                notes = draft.notes.trim().takeIf { it.isNotBlank() },
-                kind = draft.kind,
-            )
-            val today = LocalDate.now()
-            repository.recordMeeting(
-                interaction = interaction,
-                attendeeIds = draft.attendeeIds,
-                newPeople = draft.newPeople,
-                facts = draft.facts.map { fact ->
-                    Fact(
-                        personId = fact.personId,
-                        category = fact.category,
-                        body = fact.body.trim(),
-                        volatility = fact.volatility,
-                        sensitivity = fact.sensitivity,
-                        assertedOn = today,
-                        // What ties the fact back to the evening it was learned on.
-                        sourceId = interaction.id,
-                    )
-                },
-            )
+            repository.recordMeeting(record)
             _saving.value = false
             onSaved()
         }
