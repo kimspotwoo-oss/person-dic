@@ -10,7 +10,7 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: read
+  contents: write
 
 jobs:
   probe:
@@ -83,6 +83,18 @@ jobs:
             python3 -c "import html,re,sys; t=open(sys.argv[1],errors='ignore').read(); t=re.sub(r'(?s)<(script|style).*?</\1>','',t); t=re.sub(r'<[^>]+>',' ',t); t=html.unescape(re.sub(r'[ \t]+',' ',t)); t=re.sub(r'\n\s*\n+','\n',t); open(sys.argv[1][:-5]+'.txt','w').write(t)" "probe/docs/$i.html" || true
             grep -i -n -E "pixel|galaxy|honor|motorola|oneplus|oppo|vivo|xiaomi|realme|poco|iqoo|supported devices|device" "probe/docs/$i.txt" | head -80 || true
           done
+
+      # Logs and artifacts are unreachable from the dev sandbox, so the results go back onto
+      # this scratch branch (pushes made with GITHUB_TOKEN do not trigger another run).
+      - name: Commit results to the probe branch
+        if: always()
+        run: |
+          cp metadata.xml probe/ || true
+          git config user.name "github-actions"
+          git config user.email "github-actions@users.noreply.github.com"
+          git add -f probe
+          git commit -m "Probe results" || exit 0
+          git push origin HEAD:${GITHUB_REF_NAME}
 
       - uses: actions/upload-artifact@v4
         if: always()
