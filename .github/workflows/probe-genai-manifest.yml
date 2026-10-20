@@ -76,7 +76,8 @@ jobs:
             https://developers.google.com/ml-kit/genai/prompt/android/get-started \
             https://developer.android.com/ai/gemini-nano \
             https://developer.android.com/ai/gemini-nano/ml-kit-genai \
-            https://developer.android.com/ai/gemini-nano/supported-devices; do
+            https://developer.android.com/ai/gemini-nano/supported-devices \
+            https://developers.google.com/ml-kit/android-data-disclosure; do
             i=$((i+1))
             echo "== $u"
             curl -sSL -m 30 -o "probe/docs/$i.html" -w "%{http_code} %{url_effective}\n" "$u" || true
