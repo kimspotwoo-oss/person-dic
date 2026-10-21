@@ -798,13 +798,20 @@ Phase 3 대비 메모: `Fact.confidence`와 `Fact.supersededBy`는 아직 쓰이
     GenAI Prompt API는 알파를 지나 베타(`com.google.mlkit:genai-prompt`), **영어와 한국어만
     검증됨**, minSdk 26(이 앱과 같음), 지원 기기 한정 — 갤럭시 S25·S26 계열, 픽셀(Pixel 10에서
     가장 잘 동작) 등. 첫 사용 때 시스템이 1GB 넘게 받는다.
-  - **확인 못 한 것 — 결정적이다:** 이 라이브러리가 앱 매니페스트에 `INTERNET` 권한을 끼워
-    넣는지. 앱 코드에 네트워크가 없어도 병합된 매니페스트에 들어오면 Phase 0 규칙 위반이다.
-    구글 Maven이 이 환경에서 막혀 라이브러리를 열어볼 수 없었다. 의존성을 넣은 빌드의
-    병합 매니페스트(`app/build/intermediates/merged_manifests/`)를 CI에서 보고 정해야 한다.
-    ML Kit 샘플 저장소에 "네트워크 권한 없는 번들 ML Kit에서 ClientTelemetry 연결"을 묻는
-    [이슈](https://github.com/googlesamples/mlkit/issues/1076)가 있어(제목만 확인, 본문은 이 세션
-    범위 밖), 원칙 2 관점에서 사용 통계 전송 여부도 같이 봐야 한다.
+  - **CI에서 직접 확인함 (2026-10-21) — `INTERNET` 권한이 끼어 들어온다.** 일회용 워크플로로
+    `com.google.mlkit:genai-prompt:1.0.0-beta4`(최신)를 러너 안에서만 붙여 병합 매니페스트를
+    읽었다. 들어오는 권한은 `INTERNET`, `ACCESS_NETWORK_STATE`,
+    `com.google.android.apps.aicore.service.BIND_SERVICE`. 병합 기록상 앞의 둘은 ML Kit 본체가
+    아니라 **사용 통계 전송 라이브러리** `com.google.android.datatransport:transport-backend-cct`가
+    넣는다(ML Kit 공통 모듈이 끌고 옴). 즉 모델과 추론은 기기 안에 있어도, 라이브러리가
+    사용 통계를 내보낼 통로를 앱에 연다 — Phase 0 규칙("INTERNET 권한 금지")과 설계원칙 2에
+    정면으로 걸린다. 매니페스트에서 `tools:node="remove"`로 권한을 지울 수는 있지만, 그건
+    라이브러리가 기대하는 권한을 빼앗는 것이라 동작이 보장되지 않고 원칙을 우회하는 일이다.
+    ML Kit 샘플 저장소에도 같은 문제를 묻는
+    [이슈](https://github.com/googlesamples/mlkit/issues/1076)가 있다.
+    **그래서 이 길은 Phase 0 안에서는 닫혀 있다.** 열려면 사용자가 둘 중 하나를 정해야 한다:
+    Phase 0 규칙을 이 라이브러리에 한해 풀지, 아니면 이 기능을 네트워크가 허용되는 이후
+    Phase로 넘길지.
   - 지원 기기에서만 되므로 들어가더라도 **수동 입력이 기본 경로로 남고** 자동 추출은 있으면
     쓰는 보조여야 한다.
 
