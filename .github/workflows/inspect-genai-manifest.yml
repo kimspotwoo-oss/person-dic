@@ -1,0 +1,51 @@
+name: Inspect ML Kit GenAI manifest (temporary)
+
+# One-off check: which permissions would com.google.mlkit:genai-prompt merge into this app's
+# manifest? The dependency is added only inside the runner; nothing here changes the app.
+on:
+  push:
+    branches:
+      - claude/android-project-setup-guide-yxalzm
+    paths:
+      - .github/workflows/inspect-genai-manifest.yml
+
+permissions:
+  contents: read
+
+jobs:
+  inspect:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+
+      - uses: android-actions/setup-android@v4
+
+      - name: Baseline permissions (app as committed)
+        run: |
+          chmod +x gradlew
+          ./gradlew :app:processDebugMainManifest --no-daemon -q
+          echo "=== baseline uses-permission ==="
+          grep -h "uses-permission" $(find app/build/intermediates -path '*merged_manifest*' -name AndroidManifest.xml) || echo "(none)"
+
+      - name: Permissions with genai-prompt added
+        run: |
+          meta=$(curl -sS https://dl.google.com/dl/android/maven2/com/google/mlkit/genai-prompt/maven-metadata.xml)
+          echo "$meta"
+          version=$(echo "$meta" | grep -o '<version>[^<]*</version>' | tail -1 | sed 's/<[^>]*>//g')
+          echo "Using genai-prompt $version"
+          printf '\ndependencies { implementation("com.google.mlkit:genai-prompt:%s") }\n' "$version" >> app/build.gradle.kts
+          ./gradlew :app:processDebugMainManifest --no-daemon -q
+          echo "=== with genai-prompt: uses-permission ==="
+          grep -h "uses-permission" $(find app/build/intermediates -path '*merged_manifest*' -name AndroidManifest.xml) || echo "(none)"
+          echo "=== who added each permission (merger blame) ==="
+          report=$(find app/build/outputs/logs -name 'manifest-merger-debug-report.txt' | head -1)
+          grep -A3 "uses-permission" "$report" || echo "(no permission entries in report)"
+          echo "=== services/receivers/providers merged in ==="
+          grep -hE "<(service|receiver|provider)" $(find app/build/intermediates -path '*merged_manifest*' -name AndroidManifest.xml) || echo "(none)"
+          echo "=== resolved runtime dependencies (mlkit / play-services / datatransport) ==="
+          ./gradlew :app:dependencies --configuration debugRuntimeClasspath --no-daemon -q | grep -E "mlkit|play-services|datatransport|firebase" | sort -u || true
